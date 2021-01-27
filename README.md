@@ -1,5 +1,5 @@
-labgaif
-=======
+labgaif: Labeled Gaifman graphs
+===============================
 
 Transactional Datasets
 ----------------------
