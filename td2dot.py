@@ -46,7 +46,16 @@ def dump_graph(gr):
             if u <= v:
                 print(u, v, gr[u][v], gr[v][u])
 
-
+def dot_output(gr, name):
+    print("graph " + name + " {")
+    for u in gr:
+        for v in gr[u]:
+            if gr[u][v] != gr[v][u]:
+                print("Wrong count for items", u, "and", v)
+                exit(-1)
+            if u <= v:
+                print(u, " -- ", v, "[ label = ", gr[u][v], "]")
+    print("}")
 
 if __name__ == "__main__":
     
@@ -77,12 +86,15 @@ if __name__ == "__main__":
     else:
         print("No dataset file specified.")
         filename = input("Dataset File Name? ")
+    
+    fullfilename = filename
 
     if not filename.endswith(".td"):
-        filename += ".td"
+        fullfilename += ".td"
     
-    gr = read_graph_in(filename)
-    dump_graph(gr)
+    gr = read_graph_in(fullfilename)
+    # ~ dump_graph(gr)
+    dot_output(gr, filename)
 
 
 
