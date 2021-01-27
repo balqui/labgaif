@@ -17,6 +17,9 @@ Counter of edges: g[u][v] gives how many occurrences we find of
 the pair (u, v) in a transaction.
 
 Invariant: g[u][v] = g[v][u], careful with the redundancy at output time.
+
+Filename used as dot graph name, hence no dots allowed in it.
+
 '''
 
 from collections import Counter, defaultdict
@@ -24,6 +27,10 @@ from itertools import combinations
 
 VERSION = "0.0 alpha"
 
+
+def q(s):
+    'quote string s'
+    return '"' + s + '"'
 
 def read_graph_in(filename):
     '''
@@ -54,7 +61,7 @@ def dot_output(gr, name):
                 print("Wrong count for items", u, "and", v)
                 exit(-1)
             if u <= v:
-                print(u, " -- ", v, "[ label = ", gr[u][v], "]")
+                print(q(u), " -- ", q(v), "[ label = ", gr[u][v], "]")
     print("}")
 
 if __name__ == "__main__":
@@ -87,10 +94,13 @@ if __name__ == "__main__":
         print("No dataset file specified.")
         filename = input("Dataset File Name? ")
     
-    fullfilename = filename
-
-    if not filename.endswith(".td"):
-        fullfilename += ".td"
+    if '.' in filename:
+        fullfilename = filename
+        filename, ext = filename.split('.', maxsplit = 1)
+        if ext != "td":
+            print("Found extension", ext, "instead of td for file", filename)
+    else:
+        fullfilename = filename + ".td"
     
     gr = read_graph_in(fullfilename)
     # ~ dump_graph(gr)
