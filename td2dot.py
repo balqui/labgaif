@@ -1,3 +1,57 @@
+#! /usr/bin/env python3
+
+'''
+Author: Jose Luis Balcazar, ORCID 0000-0003-4248-4528 
+Copyleft: MIT License (https://en.wikipedia.org/wiki/MIT_License)
+
+Construct labeled Gaifman graph of a transactional dataset.
+'''
+
+VERSION = "0.0 alpha"
+
+
+
+if __name__ == "__main__":
+    
+    from argparse import ArgumentParser
+    argp = ArgumentParser(
+        description = ("Construct dot-coded labeled Gaifman graph" +
+                       " from transactional dataset",
+        prog = "python[3] td2dot.py or just ./td2dot"
+        )
+
+    # ~ argp.add_argument('-v', '--verbose', action = 'store_true', 
+                      # ~ help = "verbose report of current support at every closure")
+
+    argp.add_argument('-V', '--version', action = 'version', 
+                                         version = "td2dot " + VERSION,
+                                         help = "print version and exit")
+
+    argp.add_argument('dataset', nargs = '?', default = None, 
+                      help = "name of optional dataset file (default: none, ask user)")
+    
+    args = argp.parse_args()
+
+    # ~ if args.verbose:
+        # ~ statics.verbose = True
+
+    if args.dataset:
+        filename = args.dataset
+	else:
+		print("No dataset file specified.")
+		filename = input("Dataset File Name? ")
+
+	if not filename.endswith(".td"):
+		filename += ".td"
+
+
+
+
+
+
+# file F2GbyMEP follows
+
+
 #from itertools import islice
 #from matplotlib.pylab import hist, show
 #import networkx as nx
@@ -10,345 +64,45 @@
 #from kmeans_jenks import *
 
 '''
-List of the integer cooccurrence values - PROBABLY POSTPONE NEED
-'''
-def GetCoOccurrenceValues(Matrix):
-	Values=[]
-	for i in range(len(Matrix)):
-		for j in range(i,len(Matrix)):
-			if Matrix[i][j][0] not in Values:
-				Values.append(int(Matrix[i][j][0]))
-	return Values
-			
+Code by MEP
 
-'''
-To be used for K-means - PROBABLY POSTPONE NEED
-'''
-def FromMatrixToArray(Matrix,Array):
-	for i in range(len(Matrix)):
-		for j in range(len(Matrix[i])):
-			Array.append(int(Matrix[i][j][0]))
-			#Array.append([int(Matrix[i][j][0]),j])
-
-
-'''
-To be used for K-means - PROBABLY POSTPONE NEED
-'''
-def FromLabelsToMatrix(Labels,MatrixSize):
-	Matrix=[]	
-	array = []
-	j=0
-	i=0
-	while j < len(Labels):
-		while i < MatrixSize:
-			array.append([Labels[j]])
-			i+=1
-			j+=1
-		Matrix.append(array)
-		array=[]
-		i=0
-	return Matrix
-
-'''
-Generate a plain matrix MyGraph, connected and disconnected nodes  - PROBABLY POSTPONE NEED
-'''
-def MatrixPlain(Matrix, MyGraph):
-	for i in range(len(Matrix)):
-		MyGraph.append([])
-		LA.append([])
-		for j in range(len(Matrix[i])):
-			if i == j:
-				MyGraph[i].append('None')
-			else:
-				if int(Matrix[i][j][0]) != 0:
-					MyGraph[i].append('1')
-				else:
-					MyGraph[i].append('0')
-
-'''
-Given a Matrix, if the value of the element i,j is less than threshold, MyGraph will have 0 in this place, 1 if it is not
- - PROBABLY POSTPONE NEED
-'''
-def MatrixToShortestPathM(Matrix, MyGraph, threshold):
-    for i in range(len(Matrix)):
-        MyGraph.append([])
-        LA.append([])
-        for j in range(len(Matrix[i])):
-            if i == j:
-                MyGraph[i].append('None')
-            elif int(Matrix[i][j][0]) >= threshold:
-                # MyGraph[i].append('black')
-                MyGraph[i].append('1')
-                LA[i].append(j)
-            else:
-                MyGraph[i].append('0')
-                # MyGraph[i].append('red')
-
-'''
-Generate a linear matrix MyGraph dividing the original matrix Matrix in intervals of size IntevalSize
- - PROBABLY POSTPONE NEED
- '''
-def MatrixLinear(Matrix, MyGraph, IntervalSize):
-    for i in range(len(Matrix)):
-        MyGraph.append([])
-        LA.append([])
-        for j in range(len(Matrix[i])):
-            if i == j:
-                MyGraph[i].append('None')            			
-            #elif Matrix[i][j][0]!=0 and Matrix[i][j][0]< IntervalSize:
-			#	Matrix[i][j][0] = 1					
-            else:
-                InInterval = ceil(int(Matrix[i][j][0]) / int(IntervalSize))  # funcion techo de la division
-                MyGraph[i].append(str(int(InInterval)))
-                if InInterval != 0:
-                    LA[i].append(j)
-
-		
-'''
-Generate a exponential matrix MyGraph dividing the original matrix Matrix in intervals of 2^k  
- - PROBABLY POSTPONE NEED
-'''
-def MatrixExponential(Matrix, MyGraph):
-	for i in range(len(Matrix)):
-		MyGraph.append([])
-		LA.append([])
-		for j in range(len(Matrix[i])):
-			if i == j:
-				MyGraph[i].append('None')
-			else:
-				v = int(Matrix[i][j][0])
-				if v == 0:
-					InInterval = 0
-				else:
-					InInterval = ceil(log(v+1,2))  # funcion techo del logaritmo
-					#InInterval = floor(log(v,2))  # funcion piso del logaritmo
-				MyGraph[i].append(str(int(InInterval)))
-				if InInterval != 0:
-					LA[i].append(j)
-	
-					
-
-
-'''
-Generate SPG, a matrix with the length of the shortest path between i,j elements in NG (a NetworkGraph).
- - PROBABLY POSTPONE NEED
-'''
-def gen_ShortestPathMatixFromNetxG(NG):
-    SPG = []
-    Nodes = NG.nodes()
-    for i in range(len(Nodes)):
-        SPG.append([])
-        for j in range(len(Nodes)):
-            SPG[i].append([nx.shortest_path_length(NG, source=i, target=j)])
-    return SPG
-
-
-'''
-Returns how many independent paths are between two points (From,To) in a NG (NetworkxGraph)
- - PROBABLY POSTPONE NEED
-'''
-def EdgeIndependentPath(From, To):
-    TP = []
-    TotalPaths = nx.all_shortest_paths(NG, source=From, target=To)
-    for i in TotalPaths:
-        TP.append(i)
-    IndependentPaths = []
-    if len(TP) > 0:
-        IndependentPaths.append(TP[0])
-        k = 1
-        while k < len(TP):
-            ActualPath = TP[k]
-            i = 0
-            independent = True
-            while i < len(IndependentPaths) and independent:
-                path = IndependentPaths[i]
-                if list(set(ActualPath[1:len(ActualPath) - 1]) & set(path[1:len(path) - 1])) != []:
-                    independent = False
-                else:
-                    i += 1
-            if independent:
-                IndependentPaths.append(ActualPath)
-            k += 1
-    return len(IndependentPaths)
-
-
-'''
-Generate SPG, matrix with the number of independent paths between i,j on NG (NetworkGraph).
- - PROBABLY POSTPONE NEED
- '''
-def gen_MatrixQuantShortestPaths(NG):
-    SPG = []
-    Nodes = NG.nodes()
-    for i in range(len(Nodes)):
-        SPG.append([])
-        for j in range(len(Nodes)):
-            if i == j:
-                SPG[i].append([0])
-            else:
-                SPG[i].append([EdgeIndependentPath(i, j)])
-    return SPG
-
-
-'''
-Returns minimum path between two points in an adjacency matrix 
- - PROBABLY POSTPONE NEED
-'''
-def PathFromTo(i, j, path,LA):
-    path += 1
-    foundmin = False
-    k = 0
-    while k < len(LA[j]) and not foundmin:
-        if LA[j][k] in LA[i]:
-            foundmin = True
-        else:
-            k += 1
-    if foundmin:
-        return path
-    else:
-        paths = []
-        for l in LA[j]:
-            # #print l,'path', PathFromTo(i,l,path)
-            paths.append(PathFromTo(i, l, path,LA))
-        return min(paths)
-
-'''
-SPG, matrix with the shortest path between two points on an adjacency matrix
- - PROBABLY POSTPONE NEED
-'''
-def gen_ShortestPathGraph(MyGraph):
-    SPG = []
-    for i in range(len(MyGraph)):
-        SPG.append([])
-        for j in range(len(MyGraph[i])):
-            if i == j:
-                SPG[i].append([0])
-            elif MyGraph[i][j] != '0':
-                SPG[i].append([1])
-            else:
-                tpath = PathFromTo(i, j, 1,MyGraph)
-                SPG[i].append([tpath])
-    return SPG
-
-'''
-Shortest path of a graph with general values 
- - PROBABLY POSTPONE NEED
-'''
-def ShortestPathFromToGeneralMatrix(i,j,path,LA,found):
-	path += 1
-	#found = False
-	k=0
-	while k< len(LA[j]) and not found:
-		if LA[j][k] in LA[i]:
-			found = True
-		else:
-			k+=1
-	if found:
-		#print (path)
-		return path
-	else:
-		paths = []
-		for l in LA[j]:
-			#print (l,'path', ShortestPathFromToGeneralMatrix(i,l,path,LA,found))
-			paths.append(ShortestPathFromToGeneralMatrix(i, l, path,LA,found))
-		if paths != []:
-			#print (min(paths))
-			#found = True
-			return min(paths)
-		else:
-			#found = True
-			return -1
-		
-'''
-Auxiliar funtion to ShortestPathFromToGeneralMatrix
- - PROBABLY POSTPONE NEED
-'''
-def AdjMatrixStrings(Graph):
-	LA= []
-	for i in range(len(Graph)):
-		LA.append([])
-		for j in range(len(Graph)):
-			if Graph[i][j] != '0' and Graph[i][j] != 'None':
-				LA[i].append(j)
-	return LA
-		
-'''
-Auxiliar funtion to ShortestPathFromToGeneralMatrix
- - PROBABLY POSTPONE NEED
-'''
-def AdjMatrix(Graph):
-	LA= []
-	for i in range(len(Graph)):
-		LA.append([])
-		for j in range(len(Graph)):
-			if Graph[i][j] != [0]:
-				LA[i].append(j)
-	return LA
-
-'''
-Return the matrix with the shortest path, uses AdjMatrix and ShortestPathFromToGeneralMatrix 
- - PROBABLY POSTPONE NEED
-'''
-def MatrixShortestPaths(Graph):
-	MatrixShortestPaths=[]
-	if type(Graph[0][0]) is list:
-		LA = AdjMatrix(Graph)
-	else:
-		LA = AdjMatrixStrings(Graph)
-	print(LA)
-	for i in range(len(Graph)):
-		MatrixShortestPaths.append([])
-		for j in range(len(Graph)):
-			if i == j :
-				MatrixShortestPaths[i].append('None')
-			elif LA[i] ==[]:
-				MatrixShortestPaths[i].append('0')
-			elif i in LA[j]:
-				MatrixShortestPaths[i].append('1')
-			else:	
-				MatrixShortestPaths[i].append(str(ShortestPathFromToGeneralMatrix(i,j,0,LA,False)+1))
-	return MatrixShortestPaths
-
-'''
-MyGraph 0 if the origina value is less than threshold and 1 o.w.
- - PROBABLY POSTPONE NEED
-'''
-def MatrixToMATPD(Matrix, MyGraph, threshold,upperthreshold):
-	for i in range(len(Matrix)):
-		MyGraph.append([])
-		LA.append([])
-		for j in range(len(Matrix[i])):
-			if i == j:
-				MyGraph[i].append('None')
-			elif Matrix[i][j][0] > threshold:
-				if upperthreshold == 0 or Matrix[i][j][0] < upperthreshold: 
-					MyGraph[i].append('1')
-					LA[i].append(j)
-				else:
-					MyGraph[i].append('0') 
-			else:
-				MyGraph[i].append('0')
-
-
-'''
-Used by TxtFile and ArffFile to construct the initial matrix
-- MAKE SURE WHETHER NEEDED
-'''
-def WhereStart(AttributeValueQuantity):
-    WS = []
-    for i in range(len(AttributeValueQuantity)):
-        AuxIndex = 0
-        j = i
-        while j > 0:
-            AuxIndex += AttributeValueQuantity[j - 1]
-            j -= 1
-        WS.append(AuxIndex)
-    return WS
-
-
-'''
 From txt To Matrix
-- LIKELY STARTING POINT
-'''
+
+def ReadFile():
+	filename_ext = input('Name of the database file with its extension: ')
+	if '.arff' not in filename_ext and '.txt' not in filename_ext and '.csv' not in filename_ext:
+		print ('file extension not accepted')
+	else:
+		if '.arff' in filename_ext:
+			ArffFile(filename_ext, GraphMatrix)
+			filename = filename_ext.replace('.arff', '')
+		elif '.txt' in filename_ext:
+			TxtFile_ValueEqualAttribute(filename_ext,GraphMatrix)#diagnostic
+			#TxtFile_AttributeNameBeforeValue(filename_ext,GraphMatrix)
+			#TxtFile(filename_ext, GraphMatrix)#titanic
+            #CsvFile(filename_ext, GraphMatrix)
+			filename = filename_ext.replace('.txt', '')
+		elif '.csv' in filename_ext:
+			CsvFile(filename_ext, GraphMatrix)
+			filename = filename_ext.replace('.csv', '')
+
+
+Code by MEP
+
+From txt To Matrix
+
+Seems to be only for relational data with attributes and values
+
+Creates bidimensional array as matrix
+
+Traverses twice the dataset so as to get first matrix dimensions
+
+Split of dimension into values per attribute quite inefficient
+
+Calls unnecessarily islice to get iterator for file
+
+
+
 def TxtFile(filename, GraphMatrix):
     # #print 'txt'
     fileop = open(filename, "r")
@@ -357,15 +111,14 @@ def TxtFile(filename, GraphMatrix):
     AttributeValueList = []
     TotalValues = 0
 
-    AttributeNameList = fileop.readline().split()
+    AttributeNameList = fileop.readline().split() # 1st line assumed headers
     for i in range(len(AttributeNameList)):
         AttributeValueQuantity.append(0)
         AttributeValueList.append([])
 
-    # line = fileop.readline()
-    # while line != '':
-    it = islice(fileop, 0, None)
+    it = islice(fileop, 0, None) # fileop should suffice as iterator
     for line in it:
+		'first reading, there will be further ones'
         AtributesLine = line.split()
         for i in range(len(AtributesLine)):
             if AtributesLine[i] not in AttributeValueList[i]:
@@ -389,7 +142,7 @@ def TxtFile(filename, GraphMatrix):
     #	#print i
 
     # Para saber el indice donde comienzan los valores de cada atributo
-    WS = WhereStart(AttributeValueQuantity)
+    WS = WhereStart(AttributeValueQuantity) # the partial sums of prefixes - quadratic!
 
     fileop = open(filename, "r")
     it = islice(fileop, 1, None)
@@ -416,11 +169,361 @@ def TxtFile(filename, GraphMatrix):
     for i in range(len(AttributeNameList)):
         TotalAttributesValues.extend(AttributeValueList[i])
     fileop.close()
+'''
+
+
+
+
+
+'''
+List of the integer cooccurrence values - PROBABLY POSTPONE NEED
+
+def GetCoOccurrenceValues(Matrix):
+	Values=[]
+	for i in range(len(Matrix)):
+		for j in range(i,len(Matrix)):
+			if Matrix[i][j][0] not in Values:
+				Values.append(int(Matrix[i][j][0]))
+	return Values
+'''			
+
+'''
+To be used for K-means - PROBABLY POSTPONE NEED
+
+def FromMatrixToArray(Matrix,Array):
+	for i in range(len(Matrix)):
+		for j in range(len(Matrix[i])):
+			Array.append(int(Matrix[i][j][0]))
+			#Array.append([int(Matrix[i][j][0]),j])
+'''
+
+'''
+To be used for K-means - PROBABLY POSTPONE NEED
+
+def FromLabelsToMatrix(Labels,MatrixSize):
+	Matrix=[]	
+	array = []
+	j=0
+	i=0
+	while j < len(Labels):
+		while i < MatrixSize:
+			array.append([Labels[j]])
+			i+=1
+			j+=1
+		Matrix.append(array)
+		array=[]
+		i=0
+	return Matrix
+'''
+
+'''
+Generate a plain matrix MyGraph, connected and disconnected nodes  - PROBABLY POSTPONE NEED
+
+def MatrixPlain(Matrix, MyGraph):
+	for i in range(len(Matrix)):
+		MyGraph.append([])
+		LA.append([])
+		for j in range(len(Matrix[i])):
+			if i == j:
+				MyGraph[i].append('None')
+			else:
+				if int(Matrix[i][j][0]) != 0:
+					MyGraph[i].append('1')
+				else:
+					MyGraph[i].append('0')
+'''
+
+'''
+Given a Matrix, if the value of the element i,j is less than threshold, MyGraph will have 0 in this place, 1 if it is not
+ - PROBABLY POSTPONE NEED
+
+def MatrixToShortestPathM(Matrix, MyGraph, threshold):
+    for i in range(len(Matrix)):
+        MyGraph.append([])
+        LA.append([])
+        for j in range(len(Matrix[i])):
+            if i == j:
+                MyGraph[i].append('None')
+            elif int(Matrix[i][j][0]) >= threshold:
+                # MyGraph[i].append('black')
+                MyGraph[i].append('1')
+                LA[i].append(j)
+            else:
+                MyGraph[i].append('0')
+                # MyGraph[i].append('red')
+'''
+
+'''
+Generate a linear matrix MyGraph dividing the original matrix Matrix in intervals of size IntevalSize
+ - PROBABLY POSTPONE NEED
+
+def MatrixLinear(Matrix, MyGraph, IntervalSize):
+    for i in range(len(Matrix)):
+        MyGraph.append([])
+        LA.append([])
+        for j in range(len(Matrix[i])):
+            if i == j:
+                MyGraph[i].append('None')            			
+            #elif Matrix[i][j][0]!=0 and Matrix[i][j][0]< IntervalSize:
+			#	Matrix[i][j][0] = 1					
+            else:
+                InInterval = ceil(int(Matrix[i][j][0]) / int(IntervalSize))  # funcion techo de la division
+                MyGraph[i].append(str(int(InInterval)))
+                if InInterval != 0:
+                    LA[i].append(j)
+'''
+		
+'''
+Generate a exponential matrix MyGraph dividing the original matrix Matrix in intervals of 2^k  
+ - PROBABLY POSTPONE NEED
+
+def MatrixExponential(Matrix, MyGraph):
+	for i in range(len(Matrix)):
+		MyGraph.append([])
+		LA.append([])
+		for j in range(len(Matrix[i])):
+			if i == j:
+				MyGraph[i].append('None')
+			else:
+				v = int(Matrix[i][j][0])
+				if v == 0:
+					InInterval = 0
+				else:
+					InInterval = ceil(log(v+1,2))  # funcion techo del logaritmo
+					#InInterval = floor(log(v,2))  # funcion piso del logaritmo
+				MyGraph[i].append(str(int(InInterval)))
+				if InInterval != 0:
+					LA[i].append(j)
+'''	
+
+
+'''
+Generate SPG, a matrix with the length of the shortest path between i,j elements in NG (a NetworkGraph).
+ - PROBABLY POSTPONE NEED
+
+def gen_ShortestPathMatixFromNetxG(NG):
+    SPG = []
+    Nodes = NG.nodes()
+    for i in range(len(Nodes)):
+        SPG.append([])
+        for j in range(len(Nodes)):
+            SPG[i].append([nx.shortest_path_length(NG, source=i, target=j)])
+    return SPG
+'''
+
+'''
+Returns how many independent paths are between two points (From,To) in a NG (NetworkxGraph)
+ - PROBABLY POSTPONE NEED
+
+def EdgeIndependentPath(From, To):
+    TP = []
+    TotalPaths = nx.all_shortest_paths(NG, source=From, target=To)
+    for i in TotalPaths:
+        TP.append(i)
+    IndependentPaths = []
+    if len(TP) > 0:
+        IndependentPaths.append(TP[0])
+        k = 1
+        while k < len(TP):
+            ActualPath = TP[k]
+            i = 0
+            independent = True
+            while i < len(IndependentPaths) and independent:
+                path = IndependentPaths[i]
+                if list(set(ActualPath[1:len(ActualPath) - 1]) & set(path[1:len(path) - 1])) != []:
+                    independent = False
+                else:
+                    i += 1
+            if independent:
+                IndependentPaths.append(ActualPath)
+            k += 1
+    return len(IndependentPaths)
+'''
+
+'''
+Generate SPG, matrix with the number of independent paths between i,j on NG (NetworkGraph).
+ - PROBABLY POSTPONE NEED
+
+def gen_MatrixQuantShortestPaths(NG):
+    SPG = []
+    Nodes = NG.nodes()
+    for i in range(len(Nodes)):
+        SPG.append([])
+        for j in range(len(Nodes)):
+            if i == j:
+                SPG[i].append([0])
+            else:
+                SPG[i].append([EdgeIndependentPath(i, j)])
+    return SPG
+'''
+
+'''
+Returns minimum path between two points in an adjacency matrix 
+ - PROBABLY POSTPONE NEED
+
+def PathFromTo(i, j, path,LA):
+    path += 1
+    foundmin = False
+    k = 0
+    while k < len(LA[j]) and not foundmin:
+        if LA[j][k] in LA[i]:
+            foundmin = True
+        else:
+            k += 1
+    if foundmin:
+        return path
+    else:
+        paths = []
+        for l in LA[j]:
+            # #print l,'path', PathFromTo(i,l,path)
+            paths.append(PathFromTo(i, l, path,LA))
+        return min(paths)
+'''
+
+'''
+SPG, matrix with the shortest path between two points on an adjacency matrix
+ - PROBABLY POSTPONE NEED
+
+def gen_ShortestPathGraph(MyGraph):
+    SPG = []
+    for i in range(len(MyGraph)):
+        SPG.append([])
+        for j in range(len(MyGraph[i])):
+            if i == j:
+                SPG[i].append([0])
+            elif MyGraph[i][j] != '0':
+                SPG[i].append([1])
+            else:
+                tpath = PathFromTo(i, j, 1,MyGraph)
+                SPG[i].append([tpath])
+    return SPG
+'''
+
+'''
+Shortest path of a graph with general values 
+ - PROBABLY POSTPONE NEED
+
+def ShortestPathFromToGeneralMatrix(i,j,path,LA,found):
+	path += 1
+	#found = False
+	k=0
+	while k< len(LA[j]) and not found:
+		if LA[j][k] in LA[i]:
+			found = True
+		else:
+			k+=1
+	if found:
+		#print (path)
+		return path
+	else:
+		paths = []
+		for l in LA[j]:
+			#print (l,'path', ShortestPathFromToGeneralMatrix(i,l,path,LA,found))
+			paths.append(ShortestPathFromToGeneralMatrix(i, l, path,LA,found))
+		if paths != []:
+			#print (min(paths))
+			#found = True
+			return min(paths)
+		else:
+			#found = True
+			return -1
+'''
+		
+'''
+Auxiliar funtion to ShortestPathFromToGeneralMatrix
+ - PROBABLY POSTPONE NEED
+
+def AdjMatrixStrings(Graph):
+	LA= []
+	for i in range(len(Graph)):
+		LA.append([])
+		for j in range(len(Graph)):
+			if Graph[i][j] != '0' and Graph[i][j] != 'None':
+				LA[i].append(j)
+	return LA
+'''
+		
+'''
+Auxiliar funtion to ShortestPathFromToGeneralMatrix
+ - PROBABLY POSTPONE NEED
+
+def AdjMatrix(Graph):
+	LA= []
+	for i in range(len(Graph)):
+		LA.append([])
+		for j in range(len(Graph)):
+			if Graph[i][j] != [0]:
+				LA[i].append(j)
+	return LA
+'''
+
+'''
+Return the matrix with the shortest path, uses AdjMatrix and ShortestPathFromToGeneralMatrix 
+ - PROBABLY POSTPONE NEED
+
+def MatrixShortestPaths(Graph):
+	MatrixShortestPaths=[]
+	if type(Graph[0][0]) is list:
+		LA = AdjMatrix(Graph)
+	else:
+		LA = AdjMatrixStrings(Graph)
+	print(LA)
+	for i in range(len(Graph)):
+		MatrixShortestPaths.append([])
+		for j in range(len(Graph)):
+			if i == j :
+				MatrixShortestPaths[i].append('None')
+			elif LA[i] ==[]:
+				MatrixShortestPaths[i].append('0')
+			elif i in LA[j]:
+				MatrixShortestPaths[i].append('1')
+			else:	
+				MatrixShortestPaths[i].append(str(ShortestPathFromToGeneralMatrix(i,j,0,LA,False)+1))
+	return MatrixShortestPaths
+'''
+
+'''
+MyGraph 0 if the origina value is less than threshold and 1 o.w.
+ - PROBABLY POSTPONE NEED
+
+def MatrixToMATPD(Matrix, MyGraph, threshold,upperthreshold):
+	for i in range(len(Matrix)):
+		MyGraph.append([])
+		LA.append([])
+		for j in range(len(Matrix[i])):
+			if i == j:
+				MyGraph[i].append('None')
+			elif Matrix[i][j][0] > threshold:
+				if upperthreshold == 0 or Matrix[i][j][0] < upperthreshold: 
+					MyGraph[i].append('1')
+					LA[i].append(j)
+				else:
+					MyGraph[i].append('0') 
+			else:
+				MyGraph[i].append('0')
+'''
+
+'''
+Used by TxtFile and ArffFile to construct the initial matrix
+- MAKE SURE WHETHER NEEDED
+
+def WhereStart(AttributeValueQuantity):
+    WS = []
+    for i in range(len(AttributeValueQuantity)):
+        AuxIndex = 0
+        j = i
+        while j > 0:
+            AuxIndex += AttributeValueQuantity[j - 1]
+            j -= 1
+        WS.append(AuxIndex)
+    return WS
+'''
+
 
 '''
 From txt To Matrix each value is an attribute
 - CHECK OUT NEED AND PRIORITY
-'''
+
 def TxtFile_ValueEqualAttribute(filename, GraphMatrix):
     # #print 'txt'
 	fileop = open(filename, "r")
@@ -477,11 +580,12 @@ def TxtFile_ValueEqualAttribute(filename, GraphMatrix):
 	TotalAttributesValues.extend(AttributeValueList)
 		#TotalAttributesValues.extend(AttributeValueList[i])
 	fileop.close()
+'''
 
 '''
 From txt To Matrix, In the txt the attribute name is before the value
 - CHECK OUT NEED AND PRIORITY
-'''
+
 def TxtFile_AttributeNameBeforeValue(filename, GraphMatrix):
 	fileop = open(filename, "r")
 	AttributeValueQuantity = []
@@ -565,12 +669,12 @@ def TxtFile_AttributeNameBeforeValue(filename, GraphMatrix):
 		TotalAttributesValues.extend(AttributeValueList[i])
 	#print 'TOTAL ATTributeValues: ', TotalAttributesValues
 	fileop.close()
-
+'''
 
 '''
 From csv To Matrix
 - CHECK OUT NEED AND PRIORITY
-'''
+
 def CsvFile(filename, GraphMatrix):
 	fileop = open(filename, "r")
 	AttributeValueQuantity = []
@@ -637,11 +741,12 @@ def CsvFile(filename, GraphMatrix):
 	for i in range(len(AttributeNameList)):
 		TotalAttributesValues.extend(AttributeValueList[i])
 	fileop.close()
+'''
 
 '''
 From txt FileS To Matrix
 - CHECK OUT NEED AND PRIORITY
-'''
+
 def DocumentsTxtFile(GraphMatrix):
     AttributeValueQuantity = []
     AttributeNameList = []
@@ -720,12 +825,12 @@ def DocumentsTxtFile(GraphMatrix):
 
     #print '******************************'
     #print TotalAttributesValues    
-    
+'''    
 
 '''
 From arffFile to Matrix
 - CHECK OUT NEED AND PRIORITY
-'''
+
 def ArffFile(filename, GraphMatrix):
     # #print 'Arff'
     # @attribute attribute_name {values}
@@ -866,12 +971,12 @@ def ArffFile(filename, GraphMatrix):
     for i in range(len(AttributeNameList)):
         TotalAttributesValues.extend(AttributeValueList[i])
     fileop.close()
-
+'''
 
 '''
 From arffFile to Matrix
 - CHECK OUT NEED AND PRIORITY
-'''
+
 def DocumentsArffFile(GraphMatrix):
     # #print 'Arff'
     # @attribute attribute_name {values}
@@ -1020,29 +1125,13 @@ def DocumentsArffFile(GraphMatrix):
         for i in range(len(AttributeNameList)):
             TotalAttributesValues.extend(AttributeValueList[i])
         fileop.close()
+'''
 
 
 
-def ReadFile():
-	filename_ext = input('Name of the database file with its extension: ')
-	if '.arff' not in filename_ext and '.txt' not in filename_ext and '.csv' not in filename_ext:
-		print ('file extension not accepted')
-	else:
-		if '.arff' in filename_ext:
-			ArffFile(filename_ext, GraphMatrix)
-			filename = filename_ext.replace('.arff', '')
-		elif '.txt' in filename_ext:
-			TxtFile_ValueEqualAttribute(filename_ext,GraphMatrix)#diagnostic
-			#TxtFile_AttributeNameBeforeValue(filename_ext,GraphMatrix)
-			#TxtFile(filename_ext, GraphMatrix)#titanic
-            #CsvFile(filename_ext, GraphMatrix)
-			filename = filename_ext.replace('.txt', '')
-		elif '.csv' in filename_ext:
-			CsvFile(filename_ext, GraphMatrix)
-			filename = filename_ext.replace('.csv', '')
 
-
-# Histogram - CHECK OUT NEED AND PRIORITY
+'''
+Histogram - CHECK OUT NEED AND PRIORITY
 
 def ReadNetworkxGraph():
     # NG = nx.read_edgelist('data/facebook_combined.txt',create_using = nx.Graph(), nodetype=int)
@@ -1067,6 +1156,9 @@ def ReadNetworkxGraph():
     for i in NG.nodes():
         TotalAttributesValues.append(str(i))
     return NG
+'''
+
+
 
 '''
 - MAIN: REDO
