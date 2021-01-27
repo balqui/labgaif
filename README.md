@@ -36,12 +36,13 @@ or on its variants.
 Relational Data
 ---------------
 
-The original concept was applied to relational datasets.
-A relational dataset is given by a set of relations over
-a relational scheme. The scheme indicates, for each
-relation name, a list of attribute names. Each relation
-proper consists of tuples: each tuple provides a value 
-for each of the attributes given in the scheme for the
+The original concept of Gaifman graph was actually applied 
+to relational datasets (finite relational structures as
+models of first-order logic). A relational dataset is given 
+by a set of relations over a relational scheme. The scheme 
+indicates, for each relation name, a list of attribute names. 
+Each relation proper consists of tuples: each tuple provides 
+a value for each of the attributes given in the scheme for the
 corresponding relation.
 
 Handling several relations raises a number of issues;
@@ -69,3 +70,18 @@ value; taking these pairs as items, tuples may be
 seen as transactions and the relation may be recoded
 as a transactional dataset. A simple example appears 
 in file lenses.td in this repository.
+
+Usage
+-----
+
+It is Python 3 code. Try 
+
+$ ./td2dot dataset.td 
+
+and, if this does not work, then 
+
+$ python td2dot.py dataset.td 
+
+(or python3) should work. If no dataset is supplied, 
+a filename is asked. Flags -V and -h are honored in 
+the standard way.
