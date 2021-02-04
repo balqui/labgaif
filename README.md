@@ -94,8 +94,8 @@ Coming
 ------
 
 Options for:
-* redefining the separator: #s',' for a comma, and likewise anything else (but it must be printable 7bit-ascii)
 * plain comments, probably with double hash '##'
+* redefining the separator: #s',' for a comma, and likewise anything else (but it must be printable 7bit-ascii)
 * specification of existence of header line and what to do with it:
   * #hv: the first line is a header line: please prepend all attribute **v**alues with the attribute name
   * #hr: the first line is a header line but attribute names are **r**edundant, they are already prepended to attribute values
