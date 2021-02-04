@@ -96,10 +96,8 @@ Coming
 Options for:
 * redefining the separator: #s',' for a comma, and likewise anything else (but it must be printable 7bit-ascii)
 * plain comments, probably with double hash '##'
-* specification of existence of header line and what to do with it
-
-Some such specifications:
-* #hv: the first line is a header line: please prepend all attribute **v**alues with the attribute name
-* #hr: the first line is a header line but attribute names are **r**edundant, they are already prepended to attribute values
-* #hi: the first line is a header line but simply please **i**gnore it, whatever the reasons
-* #hm: **m**issing: there is no header line, all lines are data transactions
+* specification of existence of header line and what to do with it:
+  * #hv: the first line is a header line: please prepend all attribute **v**alues with the attribute name
+  * #hr: the first line is a header line but attribute names are **r**edundant, they are already prepended to attribute values
+  * #hi: the first line is a header line but simply please **i**gnore it, whatever the reasons
+  * #hm: **m**issing: there is no header line, all lines are data transactions
