@@ -76,11 +76,13 @@ Usage
 
 It is Python 3 code. Try 
 
+```bash
 $ ./td2dot dataset.td 
 
 and, if this does not work, then 
 
 $ python td2dot.py dataset.td 
+```
 
 (or python3) should work. If no dataset is supplied, 
 a filename is asked. Flags -V and -h are honored in 
@@ -92,9 +94,10 @@ Coming
 Options for:
 * redefining the separator: #s',' for a comma, and likewise anything else (but it must be printable 7bit-ascii)
 * plain comments, probably with double hash '##'
-* specification of existence of header line and what to do with it:
+* specification of existence of header line and what to do with it
 
-..* #hv: the first line is a header line: please prepend all attribute **v**alues with the attribute name
-..* #hr: the first line is a header line but attribute names are **r**edundant, they are already prepended to attribute values
-..* #hi: the first line is a header line but simply please **i**gnore it, whatever the reasons
-..* #hm: **m**issing: there is no header line, all lines are data transactions
+Some such specifications:
+* #hv: the first line is a header line: please prepend all attribute **v**alues with the attribute name
+* #hr: the first line is a header line but attribute names are **r**edundant, they are already prepended to attribute values
+* #hi: the first line is a header line but simply please **i**gnore it, whatever the reasons
+* #hm: **m**issing: there is no header line, all lines are data transactions
