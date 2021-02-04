@@ -78,9 +78,11 @@ It is Python 3 code. Try
 
 ```bash
 $ ./td2dot dataset.td 
+```
 
 and, if this does not work, then 
 
+```bash
 $ python td2dot.py dataset.td 
 ```
 
