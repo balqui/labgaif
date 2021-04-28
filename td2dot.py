@@ -16,7 +16,8 @@ Graph g is a dict of counters; g maps node u to g[u] which is a
 Counter of edges: g[u][v] gives how many occurrences we find of 
 the pair (u, v) in a transaction.
 
-Invariant: g[u][v] = g[v][u], careful with the redundancy at output time.
+Invariant: undirected graph, hence g[u][v] = g[v][u], careful 
+with the redundancy at output time.
 
 Filename used as dot graph name, hence no dots allowed in it.
 
@@ -25,7 +26,7 @@ Filename used as dot graph name, hence no dots allowed in it.
 from collections import Counter, defaultdict
 from itertools import combinations
 
-VERSION = "0.0 alpha"
+VERSION = "0.1 alpha"
 
 
 def q(s):
@@ -35,17 +36,20 @@ def q(s):
 def read_graph_in(filename):
     '''
     filename must be a .td file containing only transactions:
-    comments and other variations not supported yet
+    comments and other variations not supported yet;
+    returns Gaifman graph and sorted list of items
     '''
     gr = defaultdict(Counter)
+    items = set()
     with open(filename) as f:
         for line in f:
             transaction = set(line.split())
             if transaction:
+                items.update(transaction)
                 for (u,v) in combinations(transaction, 2):
                     gr[u][v] += 1
                     gr[v][u] += 1
-    return gr
+    return gr, items
 
 def dump_graph(gr):
     for u in gr:
@@ -102,7 +106,8 @@ if __name__ == "__main__":
     else:
         fullfilename = filename + ".td"
     
-    gr = read_graph_in(fullfilename)
+    gr, items = read_graph_in(fullfilename)
+    # ~ print(items)
     # ~ dump_graph(gr)
     dot_output(gr, filename)
 
