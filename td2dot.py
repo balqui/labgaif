@@ -49,7 +49,7 @@ def read_graph_in(filename):
                 for (u,v) in combinations(transaction, 2):
                     gr[u][v] += 1
                     gr[v][u] += 1
-    return gr, items
+    return gr, sorted(items)
 
 def dump_graph(gr):
     for u in gr:
