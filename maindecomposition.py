@@ -3,14 +3,18 @@ Authors:
 M Ely Piceno: almost all of this code taken from her file OutpDotFile.py
 
 Jose Luis Balcazar, ORCID 0000-0003-4248-4528 (marked JLB):
-- import handling at the head of the file
-- graph input before the main call near the end of the file
-- transformation into matrix graph required by rest of s/w
-    (including extra singleton list for each element)
-- extra argument "items" for TotalAttributesValues in ExtractLeaves 
-- local TotalAttributesValues for other needs
+- import-handling changes at the head of the file
+- changed "%24" to "%23" midway through function Write
+- renamed "main" to "decompose"
+- extra argument "items" for TotalAttributesValues in ExtractLeaves
+     and other places, taking '-' and '=' out of the names 
 - tried to correct issue with "titanicproof" filename 
      but had to resort to a hack
+- rest of changes near the end of the file
+- transformation functions into matrix graph required by rest of s/w
+    (including extra singleton list for each element)
+- graph input before the main call 
+- local TotalAttributesValues for other needs
 '''
 
 # JLB: hid these imports, recover CCT below
@@ -21,6 +25,10 @@ Jose Luis Balcazar, ORCID 0000-0003-4248-4528 (marked JLB):
 
 # JLB: trying to keep imports at the minimum
 from FindUnionDecompositionV009 import ConstructColorTrees, MyClan, AddNode, ExtractLeaves, Find, EdgeOf
+
+# JLB: Original Ely's code from here to the end, except as reported above
+
+###################################################################
 
 ClanList = []
 SingletonNodes = []
@@ -48,7 +56,7 @@ def DecomposeClan(Clan):
 
 '''
 Given a list, where there could be other lists or not, we obtain a string conformed by the elements involved.
-JLB: remove '=' and '-' from cluster names
+JLB: remove '=' and '-' from cluster names previously on TotalAttributesValues
 '''
 def GiveName(SomeList):
 	name=''
@@ -208,10 +216,11 @@ def Write(ActualClan, inputfilename, MyGraphA):
 				if int(MyGraphA[int(Indx[0])][int(Indx[1])][0]) == 0:
 					OutputFile.write('n_'+f+' -> n_'+t+' [color=black, style=dashed, arrowhead = none];\n')
 				elif Indx[0]!= Indx[1]:
+					"JLB: modulus was 24, I think it is incorrect, changed to 23"
 					if type(MyGraphA[int(Indx[0])][int(Indx[1])])==list:
-						colr= int(MyGraphA[int(Indx[0])][int(Indx[1])][0])%24
+						colr= int(MyGraphA[int(Indx[0])][int(Indx[1])][0])%23
 					else:	
-						colr = int(MyGraphA[int(Indx[0])][int(Indx[1])])%24
+						colr = int(MyGraphA[int(Indx[0])][int(Indx[1])])%23
 							
 					#OutputFile.write('******from to: ', int(Indx[0]),int(Indx[1]))	
 					#OutputFile.write('*******clase: ', MyGraph[int(Indx[0])][int(Indx[1])])
@@ -344,8 +353,9 @@ def Write(ActualClan, inputfilename, MyGraphA):
 	OutputFile.close()
 	#check_call(['dot','-Tpng',inputfilename+'.dot','-o',inputfilename+'.png'])#from .dot to .png
 
+# JLB: function "main" renamed to "decompose"
 
-def main(Graph, opt, file_name):
+def decompose(Graph, opt, file_name):
 	EdgesNodes =[]
 	CCT =[]
 	if '9' not in opt:
@@ -387,10 +397,30 @@ def main(Graph, opt, file_name):
 				Write(ActualClan,namefile,AuxGraph)
 		OpF.close()
 
+####################################################
 
+# JLB: remainder of file is my hacks to make the algorithm 
+#      useable from outside via function calls
 
+# JLB: make available global variable TotalAttributesValues, 
+#      necessary for Ely's code to work 
+TotalAttributesValues = [ ]
 
+# JLB: make items available as global variable TotalAttributesValues, 
+#      necessary for Ely's code to work - also, there, 
+#      replace '-' and '=' in names as disallowed by dot
+def hack_items_in(items):
+	global TotalAttributesValues
+	TotalAttributesValues = [ item.replace('-', '_').replace('=', '_') for item in items ] 
 
+# JLB: make available global variable MyGraph, 
+#      necessary for Ely's code to work 
+MyGraph = [ ]
+
+# JLB: set global variable MyGraph to actual graph 
+def hack_graph_in(my_graph):
+	global MyGraph
+	MyGraph = my_graph
 
 # JLB: several functions follow that receive a labeled
 #      graph read in via github's labgaif/td2dot.py
@@ -428,7 +458,7 @@ if __name__ == "__main__":
 
 	# JLB: import from github's labgaif/td2dot.py to create a
 	#      labeled Gaifman graph from a transactional data file 
-	from td2dot import read_graph_in #, dump_graph
+	from td2dot import read_graph_in
 
 	# choose an available .td file
 	datasetfile = 'titanic_'
@@ -439,24 +469,23 @@ if __name__ == "__main__":
 	# JLB: make items available as global variable TotalAttributesValues, 
 	#      necessary for Ely's code to work - also, there, 
 	#      replace '-' and '=' in names as disallowed by dot
-	TotalAttributesValues = [ item.replace('-', '_').replace('=', '_') for item in items ] 
+	hack_items_in(items)
 	
 	# JLB: option 1 for original graph
-	#      FAILS FOR titanic_ DUE TO REQUIRING MORE COLORS THAN AVAILABLE
 	#      Recoded graph MUST be named MyGraph due to how Ely's code works
 	# ~ MyGraph = labGgraph(graph, items)
-	# ~ main(MyGraph, '1', datasetfile + '_orig_decomp')
+	# ~ decompose(MyGraph, '1', datasetfile + '_orig_decomp')
 	
 	# JLB: option 2 for standard Gaifman graph: thresholded graph with default 0 threshold
 	#      Recoded graph MUST be named MyGraph due to how Ely's code works
 	MyGraph = stdGgraph(graph, items)
-	main(MyGraph, '2', datasetfile + '_std_decomp')
+	decompose(MyGraph, '2', datasetfile + '_std_decomp')
 	
 	# JLB: option 3 for thresholded graph with explicit threshold
 	#      Recoded graph MUST be named MyGraph due to how Ely's code works
 	#      OK IF THRESHOLD IS 344 OR MORE, BUT WITH 343 OR LESS IT FAILS!	
 	# ~ MyGraph = stdGgraph(graph, items, 344) 
-	# ~ main(MyGraph, '3', datasetfile + '_decomp')
+	# ~ decompose(MyGraph, '3', datasetfile + '_decomp')
 	
 	
 	

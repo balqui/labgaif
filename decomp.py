@@ -1,67 +1,42 @@
 '''
-Trying it standalone.
-Some strange error arose in te union/find str
-but I cannot reproduce them anymore :(
+Handle transactional file via github's labgaif/td2dot.py
+
+Similar to integration tests inside maindecomposition but
+trying them "from outside file".
+
+Yesterday I got some strange error in the union/find str
+but I cannot reproduce it anymore :(
+
+It read:
 
 if x.parent == x:
 AttributeError: 'str' object has no attribute 'parent'
 '''
 
-from decomp import main
+from maindecomposition import decompose, stdGgraph, labGgraph, hack_items_in, hack_graph_in
 
-# JLB: to handle transactional file via github's labgaif/td2dot.py
-from td2dot import read_graph_in #, dump_graph
-
-# JLB: several functions follow to reformat graph as required by Ely's code
-
-# JLB: from labeled graph to thresholded Gaifman graph 
-def stdGgraph(graph, items, thr = 0):
-	"list of lists of adjacency 0/1 booleans, optional lower threshold"
-	MyGraph = []
-	for r in items:
-		"create each graph-matrix row"
-		row = []
-		for c in items:
-			if graph[r][c] > thr:
-				row.append([1]) # yes, a list of length 1, who knows why
-			else:
-				row.append([0])
-		MyGraph.append(row)
-	return MyGraph
-
-# JLB: just recode the labeled graph as required by Ely's code
-def labGgraph(graph, items):
-	"list of lists of adjacency counts"
-	MyGraph = []
-	for r in items:
-		"create each graph-matrix row"
-		row = []
-		for c in items:
-			row.append([graph[r][c]]) # yes, a list of length 1, who knows why
-		MyGraph.append(row)
-	return MyGraph
-
-
-
+from td2dot import read_graph_in 
+# ~ from td2dot import dump_graph # might become necessary to track read in graph
 
 datasetfile = 'titanic_'
 
-# JLB: read labeled Gaifman graph, for now file hardwired
 graph, items = read_graph_in(datasetfile + '.td')
 
-# JLB: make items available as global variable, necessary for Ely's code to work
-# JLB: there, replace '-' in names as disallowed by dot
-TotalAttributesValues = [ item.replace('-', '_').replace('=', '_') for item in items ] 
+# make items available as global variable, necessary for Ely's code to work
+# there, replace '-' and '=' in names as disallowed by dot
+# means currently:
+#      TotalAttributesValues = [ item.replace('-', '_').replace('=', '_') for item in items ] 
+hack_items_in(items)
 
-# JLB: option 1 for original graph 
-# MyGraph = labGgraph(graph, items)
+# option 1 for original labeled Gaifman graph
+# ~ my_graph = labGgraph(graph, items)
 
-# JLB: option 2 for standard Gaifman graph: thresholded graph with default 0 threshold
-MyGraph = stdGgraph(graph, items)
+# option 2 for standard Gaifman graph
+my_graph = stdGgraph(graph, items)
 
-# JLB: option 3 for thresholded graph with default 0 threshold
-# MyGraph = stdGgraph(graph, items, 344) # OK 344 OR MORE, BUT WITH 343 OR LESS IT FAILS!	
+# make my_graph available as global variable, necessary for Ely's code to work
+hack_graph_in(my_graph)
 
-# JLB: hardwire option for the time being
-main(MyGraph, '2', datasetfile + '_decomp')
+#decompose it
+decompose(my_graph, '2', datasetfile + '_std_decomp')
 
