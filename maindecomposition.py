@@ -1,6 +1,6 @@
 '''
 Authors: 
-M Ely Piceno: large portions taken from her file OutpDotFile.py
+M Ely Piceno: almost all of this code taken from her file OutpDotFile.py
 
 Jose Luis Balcazar, ORCID 0000-0003-4248-4528 (marked JLB):
 - import handling at the head of the file
@@ -9,8 +9,8 @@ Jose Luis Balcazar, ORCID 0000-0003-4248-4528 (marked JLB):
     (including extra singleton list for each element)
 - extra argument "items" for TotalAttributesValues in ExtractLeaves 
 - local TotalAttributesValues for other needs
-To do:
-- correct issue with "titanicproof" filename 
+- tried to correct issue with "titanicproof" filename 
+     but had to resort to a hack
 '''
 
 # JLB: hid these imports, recover CCT below
@@ -21,13 +21,6 @@ To do:
 
 # JLB: trying to keep imports at the minimum
 from FindUnionDecompositionV009 import ConstructColorTrees, MyClan, AddNode, ExtractLeaves, Find, EdgeOf
-
-# JLB: MEP system uses several global variables, gathered together here,
-# ~ from glo import *
-# JLB does not seem to work as I intended
-
-# JLB: Gaifman graph out of transactional file via github's labgaif/td2dot.py
-from td2dot import read_graph_in, dump_graph
 
 ClanList = []
 SingletonNodes = []
@@ -55,6 +48,7 @@ def DecomposeClan(Clan):
 
 '''
 Given a list, where there could be other lists or not, we obtain a string conformed by the elements involved.
+JLB: remove '=' and '-' from cluster names
 '''
 def GiveName(SomeList):
 	name=''
@@ -67,7 +61,8 @@ def GiveName(SomeList):
 				name= name+TotalAttributesValues[int(i)]
 	else:
 		name= TotalAttributesValues[int(SomeList)]		
-	name = name.replace(".","p")	
+	# ~ name = name.replace(".","p")
+	name = name.replace(".","_").replace("=","_").replace("-","_")	
 	return name
 	
 '''
@@ -111,10 +106,10 @@ def MakeCluster(Clan,OutputFile):
 						colr= int(MyGraph[int(Indx[0])][int(Indx[1])][0])%24
 					else:
 						colr = int(MyGraph[int(Indx[0])][int(Indx[1])])%24
-					print('*from to: ', int(Indx[0]), int(Indx[1]),MyGraph[int(Indx[0])][int(Indx[1])])	
+					# ~ print('*from to: ', int(Indx[0]), int(Indx[1]),MyGraph[int(Indx[0])][int(Indx[1])])	
 				
-					print('clase: ', MyGraph[int(Indx[0])][int(Indx[1])])
-					print('color: '+ DictColors[colr])
+					# ~ print('clase: ', MyGraph[int(Indx[0])][int(Indx[1])])
+					# ~ print('color: '+ DictColors[colr])
 					OutputFile.write('n_'+f+' -> n_'+t+' [color= '+DictColors[colr]+', arrowhead = none];\n')
 				else:
 					OutputFile.write('n_'+f+' -> n_'+t+' [color=black, arrowhead = none];\n')
@@ -170,7 +165,7 @@ def FindClans(Clan):
 	for clan in clans:
 		FindClans(clan)
 
-def Write(ActualClan, inputfilename,MyGraphA):
+def Write(ActualClan, inputfilename, MyGraphA):
 	#print('TOTAL ATRIBUTE VALUES', TotalAttributesValues)
 	#inputfilename = input('Name of the dot file: ')
 	#inputfilename = gfilename
@@ -304,7 +299,7 @@ def Write(ActualClan, inputfilename,MyGraphA):
 	FindClans(ActualClan)
 
 	for c in ClanList:
-		print('clanes: ',str(c))
+		# ~ print('clanes: ',str(c))
 		MakeCluster(c,OutputFile)
 	
 	for i in SingletonNodes:
@@ -360,7 +355,7 @@ def main(Graph, opt, file_name):
 		ActualClan.add_node(str(0))	
 		for i in range(1,len(Graph)):
 			AddNode(ActualClan,str(i),CCT,EdgesNodes)
-		ExtractLeaves(ActualClan, items) # JLB: items is global and plays role of TotalAttributesValues
+		ExtractLeaves(ActualClan, TotalAttributesValues) # JLB: TotalAttributesValues was common to several files
 		# ~ print ("compara")
 		# ~ print (ActualClan.nodes)
 		# ~ Write(ActualClan,'titanicproof',Graph) # JLB: trying to get a sensible name
@@ -391,36 +386,77 @@ def main(Graph, opt, file_name):
 				OpF.write(str(ActualClan.nodes)+'\n')	
 				Write(ActualClan,namefile,AuxGraph)
 		OpF.close()
-		
-		
-
-# JLB: read graph, for now file hardwired
-graph, items = read_graph_in('e13.td')
-
-# ~ # JLB: make items available as global variable
-TotalAttributesValues = items
-# ~ # JLB does not seem to work as I intended
-
-# ~ print("global items:", TotalAttributesValues)
-
-# JLB: hardwire option 2 -standard Gaifman graph- for the time being
-# JLB: reformat graph as required by MEP s/w
-# option 2 for standard Gaifman graph 
-# (option 1 for original graph would instead be a list of lists of adjacency counts)
-MyGraph = []
-for r in items:
-	"create graph matrix row"
-	row = []
-	for c in items:
-		if graph[r][c] > 0:
-			row.append([1]) # yes, a list of length 1, who knows why
-		else:
-			row.append([0])
-	MyGraph.append(row)
 
 
-# ~ main(MyGraph,ans)
 
-# JLB: hardwire option 2 -standard Gaifman graph- for the time being
-main(MyGraph, '2', "e13_decomp")
 
+
+
+# JLB: several functions follow that receive a labeled
+#      graph read in via github's labgaif/td2dot.py
+#      which is to be reformatted as required by Ely's code
+
+# JLB: from labeled graph to thresholded Gaifman graph 
+def stdGgraph(graph, items, thr = 0):
+	"list of lists of adjacency 0/1 booleans, optional lower threshold"
+	MyGraph = []
+	for r in items:
+		"create each graph-matrix row"
+		row = []
+		for c in items:
+			if graph[r][c] > thr:
+				row.append([1]) # yes, a list of length 1, who knows why
+			else:
+				row.append([0])
+		MyGraph.append(row)
+	return MyGraph
+
+# JLB: just recode the labeled graph as required by Ely's code
+def labGgraph(graph, items):
+	"list of lists of adjacency counts"
+	MyGraph = []
+	for r in items:
+		"create each graph-matrix row"
+		row = []
+		for c in items:
+			row.append([graph[r][c]]) # yes, a list of length 1, who knows why
+		MyGraph.append(row)
+	return MyGraph
+
+if __name__ == "__main__":
+	"JLB: integration tests, not all of them work well yet"
+
+	# JLB: import from github's labgaif/td2dot.py to create a
+	#      labeled Gaifman graph from a transactional data file 
+	from td2dot import read_graph_in #, dump_graph
+
+	# choose an available .td file
+	datasetfile = 'titanic_'
+	
+	# JLB: read labeled Gaifman graph
+	graph, items = read_graph_in(datasetfile + '.td')
+	
+	# JLB: make items available as global variable TotalAttributesValues, 
+	#      necessary for Ely's code to work - also, there, 
+	#      replace '-' and '=' in names as disallowed by dot
+	TotalAttributesValues = [ item.replace('-', '_').replace('=', '_') for item in items ] 
+	
+	# JLB: option 1 for original graph
+	#      FAILS FOR titanic_ DUE TO REQUIRING MORE COLORS THAN AVAILABLE
+	#      Recoded graph MUST be named MyGraph due to how Ely's code works
+	# ~ MyGraph = labGgraph(graph, items)
+	# ~ main(MyGraph, '1', datasetfile + '_orig_decomp')
+	
+	# JLB: option 2 for standard Gaifman graph: thresholded graph with default 0 threshold
+	#      Recoded graph MUST be named MyGraph due to how Ely's code works
+	MyGraph = stdGgraph(graph, items)
+	main(MyGraph, '2', datasetfile + '_std_decomp')
+	
+	# JLB: option 3 for thresholded graph with explicit threshold
+	#      Recoded graph MUST be named MyGraph due to how Ely's code works
+	#      OK IF THRESHOLD IS 344 OR MORE, BUT WITH 343 OR LESS IT FAILS!	
+	# ~ MyGraph = stdGgraph(graph, items, 344) 
+	# ~ main(MyGraph, '3', datasetfile + '_decomp')
+	
+	
+	

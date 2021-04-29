@@ -1,0 +1,12 @@
+syntax: glob
+
+*.pyc
+dist/*
+build/*
+*.egg-info
+*.dot
+*.png
+obsol/*
+diag*
+mep/*
+Pack*

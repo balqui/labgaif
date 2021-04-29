@@ -974,6 +974,7 @@ class MyClan:
 		self.clanlist.remove(clan)
 			
 	def getclanwithnodes(self,nodes):
+		# ~ print("Get clan with", nodes, "in", self.nodes, "clan list length:", len(self.clanlist))
 		found1 = False
 		c = 0
 		while not found1 and c < len(self.clanlist):
@@ -983,8 +984,8 @@ class MyClan:
 				c+=1
 		if found1:
 			return self.clanlist[c]
-		#else:
-			#print 'There is not clan with nodes',nodes
+		# ~ else:
+			# ~ print('There is not clan with nodes', nodes, "in", self.nodes)
 
 class Edge:
 	def __init__ (self, labelFrom,sep,labelTo):
@@ -1183,7 +1184,7 @@ def ObtainLeaves(SomeClan,LeavesList):
 
 def ExtractLeaves(SomeClan, TotalAttributesValues):
 	# JLB: added TotalAttributesValues argument, was a global var
-
+	
 	LL=[]
 	ObtainLeaves(SomeClan,LL)
 
@@ -1195,7 +1196,7 @@ def ExtractLeaves(SomeClan, TotalAttributesValues):
 	for i in SomeClan.nodes:
 		if type(i)==list:
 			AuxClan = SomeClan.getclanwithnodes(i)
-			ExtractLeaves(AuxClan)
+			ExtractLeaves(AuxClan, TotalAttributesValues)
 		#else:
 			#print TotalAttributesValues[int(i)]
 			##print i, 'leaves'
