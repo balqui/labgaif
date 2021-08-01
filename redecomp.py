@@ -80,7 +80,7 @@ if __name__ == "__main__":
     # ~ nm = make_agraph(gr, items, g2)
     # ~ g2.draw(filename + "_sgtons.png", prog = "dot")
     
-    g0 = OurAGraph(g.to_string()) # slow hack for today, should do a proper init
+    g0 = OurAGraph(g.handle) # slow hack for today, should do a proper init
 
 # create root with two first nodes to start the decomposition, test
     g0.start_dec(nm)
