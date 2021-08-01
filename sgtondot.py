@@ -7,9 +7,7 @@ graph or 2-structure decompositions.
 
 '''
 
-def delbl(lbl):
-	'''reduce lbl to only alpha chars, capitalized'''
-	return ''.join( c for c in lbl if c.isalpha() ).capitalize()
+from scaff import delbl
 
 class Sgton:
 	

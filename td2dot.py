@@ -6,6 +6,9 @@ Copyleft: MIT License (https://en.wikipedia.org/wiki/MIT_License)
 
 Construct labeled Gaifman graph of a transactional dataset.
 
+Produce either DOT output or an AGraph with separate singletons
+and representing points.
+
 Pending: smarter iterator on .td file to handle comments and such
 
 Don't bother to import graphs from NetworkX, use case is easy enough.
