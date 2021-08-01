@@ -28,8 +28,9 @@ Filename used as dot graph name, hence no dots allowed in it.
 
 from collections import Counter, defaultdict
 from itertools import combinations
+from sgton import Sgton
 
-VERSION = "0.1 alpha"
+VERSION = "0.2 alpha"
 
 
 def q(s):
@@ -70,6 +71,18 @@ def dot_output(gr, name):
             if u <= v:
                 print(q(u), " -- ", q(v), "[ label = ", gr[u][v], "]")
     print("}")
+
+def make_agraph(gr, items, outgr):
+	"outgr expected to be a pygraphviz's AGraph"
+	name = dict()
+	for n in items:
+		s = Sgton(n)
+		name[n] = s.nmr
+		s.add_sgton(outgr)
+	for u in gr:
+		for v in gr[u]:
+			if u <= v:
+				outgr.add_edge(name[u], name[v], label = gr[u][v])
 
 if __name__ == "__main__":
     
@@ -113,6 +126,12 @@ if __name__ == "__main__":
     # ~ print(items)
     # ~ dump_graph(gr)
     dot_output(gr, filename)
+    
+    from pygraphviz import AGraph
+    g = AGraph()
+    make_agraph(gr, items, g)
+    g.layout("dot")
+    g.draw(filename + "_sgtons.png")
 
 
 
