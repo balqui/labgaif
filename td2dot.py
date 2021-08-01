@@ -6,8 +6,9 @@ Copyleft: MIT License (https://en.wikipedia.org/wiki/MIT_License)
 
 Construct labeled Gaifman graph of a transactional dataset.
 
-Produce either DOT output or an AGraph from pygraphviz with 
-separate singletons and representing points.
+Produce either DOT output on stdout for the Gaifman graph
+or an AGraph from pygraphviz with separate singletons and 
+representing points.
 
 Pending: smarter iterator on .td file to handle comments and such
 
@@ -70,7 +71,10 @@ def dot_output(gr, name):
     print("}")
 
 def make_agraph(gr, items, outgr):
-	"outgr expected to be a pygraphviz's AGraph"
+	'''outgr expected to be a pygraphviz's AGraph;
+	adds to it the pairs for the singletons and
+	returns the internal names for the representing points
+	'''
 	name = dict()
 	for n in items:
 		s = Sgton(n)
@@ -80,6 +84,7 @@ def make_agraph(gr, items, outgr):
 		for v in gr[u]:
 			if u <= v:
 				outgr.add_edge(name[u], name[v], label = gr[u][v])
+	return sorted(name.values())
 
 if __name__ == "__main__":
     
@@ -126,7 +131,8 @@ if __name__ == "__main__":
     
     from pygraphviz import AGraph
     g = AGraph(name = delbl(filename))
-    make_agraph(gr, items, g)
+    nm = make_agraph(gr, items, g)
+    print("Internal AGraph names:", nm)
     g.layout("dot")
     g.draw(filename + "_sgtons.png")
     g.write(filename + "_sgtons.dot")
