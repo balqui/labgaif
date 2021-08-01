@@ -80,20 +80,20 @@ if __name__ == "__main__":
     # ~ nm = make_agraph(gr, items, g2)
     # ~ g2.draw(filename + "_sgtons.png", prog = "dot")
     
-    g0 = OurAGraph(g.handle) # slow hack for today, should do a proper init
-
+    g = OurAGraph(g.handle)
+    
 # create root with two first nodes to start the decomposition, test
-    g0.start_dec(nm)
-    g0.draw(filename + "_started.png", prog = "dot")
+    g.start_dec(nm)
+    g.draw(filename + "_started.png", prog = "dot")
     
 # now should loop on g0.pend to insert all the pending nodes
-    for n in g0.pend:
-        g0.add2tree(g0.root, n)
+    for n in g.pend:
+        g.add2tree(g.root, n)
 
 # or alternatively loop on an iterator over the nodes and dispose of nm
 
-#    g0.layout("dot") # unnecessary here, gets called from draw
-    g0.draw(filename + "_redecomp.png", prog = "dot")
+#    g.layout("dot") # unnecessary here, gets called from draw
+    g.draw(filename + "_redecomp.png", prog = "dot")
     
 
 
