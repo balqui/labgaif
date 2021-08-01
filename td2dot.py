@@ -6,32 +6,29 @@ Copyleft: MIT License (https://en.wikipedia.org/wiki/MIT_License)
 
 Construct labeled Gaifman graph of a transactional dataset.
 
-Produce either DOT output or an AGraph with separate singletons
-and representing points.
+Produce either DOT output or an AGraph from pygraphviz with 
+separate singletons and representing points.
 
 Pending: smarter iterator on .td file to handle comments and such
 
-Don't bother to import graphs from NetworkX, use case is easy enough.
-
-Adjacency lists. 
-
-Graph g is a dict of counters; g maps node u to g[u] which is a 
-Counter of edges: g[u][v] gives how many occurrences we find of 
-the pair (u, v) in a transaction.
+Graph is read as adjacency lists, then transformed into DOT code
+or into an AGraph. Specifically, graph g is a dict of counters, 
+maps node u to g[u] which is a Counter of edges: g[u][v] gives 
+how many occurrences we find of the pair (u, v) in a transaction.
 
 Invariant: undirected graph, hence g[u][v] = g[v][u], careful 
 with the redundancy at output time.
 
-Filename used as dot graph name, hence no dots allowed in it.
+Alpha chars in filename used as dot graph name.
 
 '''
 
 from collections import Counter, defaultdict
 from itertools import combinations
 from sgton import Sgton
+from scaff import delbl
 
 VERSION = "0.2 alpha"
-
 
 def q(s):
     'quote string s'
@@ -125,13 +122,15 @@ if __name__ == "__main__":
     gr, items = read_graph_in(fullfilename)
     # ~ print(items)
     # ~ dump_graph(gr)
-    dot_output(gr, filename)
+    dot_output(gr, delbl(filename))
     
     from pygraphviz import AGraph
-    g = AGraph()
+    g = AGraph(name = delbl(filename))
     make_agraph(gr, items, g)
     g.layout("dot")
     g.draw(filename + "_sgtons.png")
+    g.write(filename + "_sgtons.dot")
+    
 
 
 
