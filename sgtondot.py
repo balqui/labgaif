@@ -7,7 +7,7 @@ graph or 2-structure decompositions.
 
 '''
 
-from scaff import delbl
+from auxfun import delbl
 
 class Sgton:
 	

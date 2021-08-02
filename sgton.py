@@ -14,7 +14,7 @@ names that become empty upon removing nonalpha chars.
 '''
 
 from itertools import combinations
-from scaff import delbl
+from auxfun import delbl
 from pygraphviz import AGraph
 
 class Sgton:

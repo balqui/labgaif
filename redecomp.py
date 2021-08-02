@@ -14,7 +14,7 @@ ToDo:
 
 from pygraphviz import AGraph
 from td2dot import read_graph_in, make_agraph
-from scaff import delbl
+from auxfun import delbl
 
 VERSION = "0.1 alpha"
 

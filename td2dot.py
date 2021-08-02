@@ -27,13 +27,9 @@ Alpha chars in filename used as dot graph name.
 from collections import Counter, defaultdict
 from itertools import combinations
 from sgton import Sgton
-from scaff import delbl
+from auxfun import delbl, q
 
 VERSION = "0.2 alpha"
-
-def q(s):
-    'quote string s'
-    return '"' + s + '"'
 
 def read_graph_in(filename):
     '''
