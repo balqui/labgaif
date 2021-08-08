@@ -7,7 +7,8 @@ d.add_subgraph(nbunch = 'BC', name = 'clusterBC', style = 'filled', color = 'yel
 d.add_node('X')
 d.add_edge('X', 'B', lhead = 'clusterBC') # lhead does the clipping if compound is true
 
-d.layout()
+# ~ d.layout() # unnecessary if "draw" is called next
+
 d.draw('d.png', prog = "dot")
 
 # ~ G = pgv.AGraph(directed=True)

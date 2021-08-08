@@ -90,10 +90,12 @@ if __name__ == "__main__":
     for n in g.pend:
         g.add2tree(g.root, n)
 
-# or alternatively loop on an iterator over the nodes and dispose of nm
-
 #    g.layout("dot") # unnecessary here, gets called from draw
     g.draw(filename + "_redecomp.png", prog = "dot")
+
+# Nejada's project may require nm to be sorted according to the edge labels
+# We must leave room for OurAGraph to sort in various ways the pend list
+
     
 
 
