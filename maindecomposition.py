@@ -411,7 +411,7 @@ TotalAttributesValues = [ ]
 #      replace '-' and '=' in names as disallowed by dot
 def hack_items_in(items):
 	global TotalAttributesValues
-	TotalAttributesValues = [ item.replace('-', '_').replace('=', '_') for item in items ] 
+	TotalAttributesValues = [ item.replace('-', '_').replace('=', '_').replace(':','_') for item in items ] 
 
 # JLB: make available global variable MyGraph, 
 #      necessary for Ely's code to work 
