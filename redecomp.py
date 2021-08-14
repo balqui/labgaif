@@ -9,6 +9,7 @@ labgaif/td2dot.py
 ToDo: 
 . proper init of OurAGraph class
 . try iterator on nodes instead of storing the nm list
+. better yet, allow for an external iterator eg on decreasing edge weights
 
 '''
 
@@ -19,12 +20,25 @@ from auxfun import delbl
 VERSION = "0.1 alpha"
 
 class OurAGraph(AGraph):
+    '''
+    AGraph where we will be running the incremental decomposition algorithm.
+    Has a dict self.typ mapping cluster names to types as follows:
+        -1: primitive; N >= 0: complete and of "color" N
+    Has a specific clan which acts as root
+    Currently has a list of nodes not yet added to the decomposition
+    but this is likely to change.
+    '''
     
     def start_dec(self, nm):
+        self.typ = dict()
         if len(nm) > 1:
             a, b, *rest = nm
             nmroot = 'cluster_' + a + '_' + b
             self.root = self.add_subgraph([a, b], name = nmroot)
+            if self.has_edge(a, b):
+                self.typ[nmroot] = self.get_edge(a, b).attr["label"]
+            else:
+                self.typ[nmroot] = 0                
             self.pend = rest
 # ~ # double-checking with colored subgraph instead
             # ~ self.root = self.add_subgraph([a, b], name = nmroot, style = 'filled', color = 'yellow')
@@ -80,7 +94,7 @@ if __name__ == "__main__":
     # ~ nm = make_agraph(gr, items, g2)
     # ~ g2.draw(filename + "_sgtons.png", prog = "dot")
     
-    g = OurAGraph(g.handle)
+    g = OurAGraph(g.handle) # maybe it should not have the singletons from the start but acquire them in steps
     
 # create root with two first nodes to start the decomposition, test
     g.start_dec(nm)
