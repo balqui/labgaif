@@ -66,6 +66,18 @@ def dot_output(gr, name):
                 print(q(u), " -- ", q(v), "[ label = ", gr[u][v], "]")
     print("}")
 
+def dot_output_file(gr, name, fnm):
+	with open(fnm, 'w') as f:
+	    print("graph " + name + " {", file = f)
+	    for u in gr:
+	        for v in gr[u]:
+	            if gr[u][v] != gr[v][u]:
+	                print("Wrong count for items", u, "and", v)
+	                exit(-1)
+	            if u <= v:
+	                print(q(u), " -- ", q(v), "[ label = ", gr[u][v], "]", file = f)
+	    print("}", file = f)
+
 def make_agraph(gr, items, outgr):
 	'''outgr expected to be a pygraphviz's AGraph;
 	adds to it the pairs for the singletons and
