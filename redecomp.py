@@ -23,7 +23,9 @@ class OurAGraph(AGraph):
     '''
     AGraph where we will be running the incremental decomposition algorithm.
     Has a dict self.typ mapping cluster names to types as follows:
-        -1: primitive; N >= 0: complete and of "color" N
+        -1: primitive; N >= 0: complete and of "color" N; 
+        as of today, just modules: 
+        N == 0 for nonexistent edge, N == 1 for existing edge
     Has a specific clan which acts as root
     Currently has a list of nodes not yet added to the decomposition
     but this is likely to change.
@@ -36,7 +38,8 @@ class OurAGraph(AGraph):
             nmroot = 'cluster_' + a + '_' + b
             self.root = self.add_subgraph([a, b], name = nmroot)
             if self.has_edge(a, b):
-                self.typ[nmroot] = self.get_edge(a, b).attr["label"]
+                self.typ[nmroot] = 1
+                # ~ self.typ[nmroot] = self.get_edge(a, b).attr["label"]
             else:
                 self.typ[nmroot] = 0                
             self.pend = rest
@@ -47,7 +50,22 @@ class OurAGraph(AGraph):
             # ~ ggg.draw("e13_" + nmroot + "_subgraph.png", prog = "dot")
 
     def add2tree(self, curr_root, curr_node):
-        pass
+        v = self.visib(curr_root, curr_node)
+        # case study according to v and self.typ[curr_root]
+    
+    def visib(self, cl, nd):
+        '''
+        Visibility test, very slow for the time being, returns 0/1
+        "color" of the edges from node nd to all nodes inside clan/module cl
+        if it is the same for all of them, returns -1 otherwise
+        '''
+        s = sum ( 1 for n in cl if self.has_edge(n, nd) )
+        if s == 0:
+            return 0
+        elif s == len(cl):
+            return 1
+        else:
+            return -1
 
 if __name__ == "__main__":
     
@@ -99,7 +117,8 @@ if __name__ == "__main__":
 # create root with two first nodes to start the decomposition, test
     g.start_dec(nm)
     g.draw(filename + "_started.png", prog = "dot")
-    
+    for nd in g.pend:
+        print(nd, g.visib(g.root, nd))
 # now should loop on g0.pend to insert all the pending nodes
     for n in g.pend:
         g.add2tree(g.root, n)
