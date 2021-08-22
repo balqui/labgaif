@@ -16,6 +16,7 @@ ToDo:
 from pygraphviz import AGraph
 from td2dot import read_graph_in, make_agraph
 from auxfun import delbl
+from collections import defaultdict as ddict
 
 VERSION = "0.1 alpha"
 
@@ -50,22 +51,62 @@ class OurAGraph(AGraph):
             # ~ ggg.draw("e13_" + nmroot + "_subgraph.png", prog = "dot")
 
     def add2tree(self, curr_root, curr_node):
-        v = self.visib(curr_root, curr_node)
-        # case study according to v and self.typ[curr_root]
-    
-    def visib(self, cl, nd):
         '''
-        Visibility test, very slow for the time being, returns 0/1
-        "color" of the edges from node nd to all nodes inside clan/module cl
-        if it is the same for all of them, returns -1 otherwise
+        case study according to v and self.typ[curr_root]
+        complete cases:
+        1a: all visib with same color of clan, node is added
+        1b: some but not all, separate them, recursively add to them
+        1c: all visib with same color but not that of the clan: new size 2 clan
+        1d: change it into primitive (more complicated case with splits)
+        primitive cases:
+        2a: same color pattern as one subclan: recursively add to it
+        2b: like 1c
+        2c: not all visible have same color: keep the node here and split as necessary
         '''
-        s = sum ( 1 for n in cl if self.has_edge(n, nd) )
-        if s == 0:
-            return 0
-        elif s == len(cl):
-            return 1
+        sz = len(curr_root)
+        print(sz, curr_root.name)
+        vd = self.visib_dict(curr_root, curr_node)
+        if len(vd[self.typ[curr_root.name]]) == sz:
+            'case 1a'
+            curr_root.add_node(curr_node)
+        elif vd[self.typ[curr_root.name]]:
+            'case 1b'
+            to_sibling = list()
+            for n in vd[1 - self.typ[curr_root.name]]:
+                '''
+                create sibling clan with the rest;
+                this must become more sophisticate if we move beyond edges/nonedges
+                '''
+                to_sibling.append(n)
+                curr_root.remove_node(n)
+                # make clan with to_sibling nodes plus recursive call on curr_node
+                # connect it with remaining curr_root
+                # clarify whether/how curr_root gets updated
+                print("Node", curr_node, "not added, case not completed yet")
+        elif not vd[self.typ[curr_root.name]]:
+            'case 1c'
+            # aux_clan = curr_root
+            nmnew = curr_root.name + '_' + curr_node
+            new_clan = self.subgraph([curr_node], name = nmnew)
+            for n in curr_root:
+                new_clan.add_node(n)
+            curr_root = new_clan
+            print("Node", curr_node, "not added, case not completed yet")
         else:
-            return -1
+            print("Node", curr_node, "not added, case not covered so far")
+    
+    def visib_dict(self, cl, nd):
+        '''
+        Visibility test, very slow and limited for the time being;
+        all nodes inside clan/module cl are classified according to 
+        which color, if any, are they seen from nd, class -1 if not seen;
+        later must expand to treat adequately coarsest-quotient nodes.
+        '''
+        d = ddict(list)
+        for n in cl: 
+            c = 1 if self.has_edge(n, nd) else 0
+            d[c].append(n)
+        return d
 
 if __name__ == "__main__":
     
@@ -99,10 +140,8 @@ if __name__ == "__main__":
         fullfilename = filename + ".td"
     
     gr, items = read_graph_in(fullfilename)
-    g = AGraph(name = delbl(filename), compound = "True")
+    g = AGraph(name = delbl(filename), compound = "true", directed = "true", newrank = "true")
     nm = make_agraph(gr, items, g)
-
-# compound allows for edge clipping at clusters
 
 # might use AGraph.iternodes instead of nm
 
@@ -117,8 +156,8 @@ if __name__ == "__main__":
 # create root with two first nodes to start the decomposition, test
     g.start_dec(nm)
     g.draw(filename + "_started.png", prog = "dot")
-    for nd in g.pend:
-        print(nd, g.visib(g.root, nd))
+    # ~ for nd in g.pend:
+        # ~ print(nd, g.visib_dict(g.root, nd))
 # now should loop on g0.pend to insert all the pending nodes
     for n in g.pend:
         g.add2tree(g.root, n)
