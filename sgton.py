@@ -29,6 +29,11 @@ class Sgton:
 		grph.add_node(self.nmr, shape = "point")
 		grph.add_edge(self.nmr, self.nms)
 
+	def dump_sgton(self):
+		return self.lbl + "_" + self.nms + "_" + self.nmr
+
+
+
 if __name__ == "__main__":
 	g = AGraph()
 	nodes = [ "aaw", "q3r", "aw4f", "awafww" ]

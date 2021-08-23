@@ -18,6 +18,7 @@ from td2dot import read_graph_in, make_agraph
 from sgton import Sgton
 from auxfun import delbl
 from collections import defaultdict as ddict
+from itertools import combinations
 
 VERSION = "0.1 beta"
 
@@ -42,22 +43,21 @@ class DecompTree(AGraph):
         self.typ = dict()
 
     def start_dec(self, gr, a, b):
-        aa = Sgton(a)
-        aa.add_sgton(self)
-        bb = Sgton(b)
-        bb.add_sgton(self)
-        nmroot = 'cluster_' + aa.nmr + '_' + bb.nmr
+        print("at start with:", a.dump_sgton(), b.dump_sgton())
+        a.add_sgton(self)
+        b.add_sgton(self)
+        nmroot = 'cluster_' + a.nmr + '_' + b.nmr
         print(nmroot)
-        self.root = self.add_subgraph([aa.nmr, bb.nmr], name = nmroot, rank = "same")
-        if gr[a][b]:
+        self.root = self.add_subgraph([a.nmr, b.nmr], name = nmroot, rank = "same")
+        if gr.has_edge(a.nmr, b.nmr):
             "only modules and no clans for now"
-            self.add_edge(aa.nmr, bb.nmr)
+            self.add_edge(a.nmr, b.nmr)
             self.typ[nmroot] = 1
         else:
             self.typ[nmroot] = 0                
 
 
-    def add2tree(self, gr, curr_root, curr_node):
+    def add2tree(self, gr, curr_root, node_to_add):
         '''
         case study according to -v and self.typ[curr_root]
         complete cases:
@@ -70,12 +70,18 @@ class DecompTree(AGraph):
         2b: like 1c
         2c: not all visible have same color: keep the node here and split as necessary
         '''
+        node_to_add.add_sgton(self)
         sz = len(curr_root)
         print(sz, curr_root.name)
-        vd = self.visib_dict(curr_root, curr_node)
+        vd = self.visib_dict(gr, curr_root, node_to_add.nmr)
         if len(vd[self.typ[curr_root.name]]) == sz:
             'case 1a'
-            curr_root.add_node(curr_node)
+            curr_root.add_node(node_to_add.nmr)
+            if self.typ[curr_root.name] == 1:
+                for n in curr_root:
+                    if n != node_to_add.nmr:
+                        print("add edge", n, node_to_add.nmr)
+                        curr_root.add_edge(n, node_to_add.nmr)
         elif vd[self.typ[curr_root.name]]:
             'case 1b'
             to_sibling = list()
@@ -89,30 +95,33 @@ class DecompTree(AGraph):
                 # make clan with to_sibling nodes plus recursive call on curr_node
                 # connect it with remaining curr_root
                 # clarify whether/how curr_root gets updated
-                print("Node", curr_node, "not added, case not completed yet")
+                print("Node", node_to_add.nmr, "not added, case 1b not completed yet")
         elif not vd[self.typ[curr_root.name]]:
             'case 1c'
             # aux_clan = curr_root
-            nmnew = curr_root.name + '_' + curr_node
-            new_clan = self.subgraph([curr_node], name = nmnew)
+            nmnew = curr_root.name + '_' + node_to_add.nmr
+            new_clan = self.subgraph([node_to_add], name = nmnew)
             for n in curr_root:
                 new_clan.add_node(n)
             curr_root = new_clan
-            print("Node", curr_node, "not added, case not completed yet")
+            print("Node", node_to_add.nmr, "not added, case 1c not completed yet")
         else:
-            print("Node", curr_node, "not added, case not covered so far")
+            print("Node", node_to_add.nmr, "not added, case not covered so far")
     
-    def visib_dict(self, cl, nd):
+    def visib_dict(self, gr, cl, nd):
         '''
         Visibility test, very slow and limited for the time being;
         all nodes inside clan/module cl are classified according to 
         which color, if any, are they seen from nd, class -1 if not seen;
         later must expand to treat adequately coarsest-quotient nodes.
         '''
+        print("visib check for", cl.name, nd)
         d = ddict(list)
         for n in cl: 
-            c = 1 if self.has_edge(n, nd) else 0
+            print("edge between", nd, "and", n, gr.has_edge(n, nd) or gr.has_edge(nd, n))
+            c = 1 if gr.has_edge(n, nd) or gr.has_edge(nd, n) else 0
             d[c].append(n)
+            print(n, "appended to color", c)
         return d
 
 if __name__ == "__main__":
@@ -147,18 +156,26 @@ if __name__ == "__main__":
         fullfilename = filename + ".td"
 
 
-    gr, items = read_graph_in(fullfilename)
+    g_raw, items = read_graph_in(fullfilename)
+
+    gr = AGraph(name = delbl(filename), directed = "false")
+    nm = make_agraph(g_raw, items, gr)
     print(items)
+    for i, j in combinations(nm, 2):
+        if gr.has_edge(i, j):
+            print(i, j, gr.get_edge(i, j).attr["label"])
+        else:
+            print("no edge", i, j)
 
     dtree = DecompTree()
     dtree.setup(delbl(filename))
     
-    if len(items) > 8:
-        dtree.start_dec(gr, items[0], items[7])
-        # ~ dtree.s_dec(gr)
+    if len(nm) > 8:
+        dtree.start_dec(gr, Sgton(items[0]), Sgton(items[7])) 
         print(dtree.typ)
+        print("next:", nm[4])
         
-        dtree.add2tree(gr, dtree.root, items[4])
+        dtree.add2tree(gr, dtree.root, Sgton(items[4]))
 
 
 
@@ -173,8 +190,6 @@ if __name__ == "__main__":
 
 
 
-    # ~ g = AGraph(name = delbl(filename), compound = "true", directed = "true", newrank = "true")
-    # ~ nm = make_agraph(gr, items, g)
 
 # might use AGraph.iternodes instead of nm
 
