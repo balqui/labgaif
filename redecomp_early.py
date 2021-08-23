@@ -15,13 +15,12 @@ ToDo:
 
 from pygraphviz import AGraph
 from td2dot import read_graph_in, make_agraph
-from sgton import Sgton
 from auxfun import delbl
 from collections import defaultdict as ddict
 
-VERSION = "0.1 beta"
+VERSION = "0.1 alpha"
 
-class DecompTree(AGraph):
+class OurAGraph(AGraph):
     '''
     AGraph where we will be running the incremental decomposition algorithm.
     Has a dict self.typ mapping cluster names to types as follows:
@@ -33,44 +32,27 @@ class DecompTree(AGraph):
     but this is likely to change.
     '''
     
-    def __init__(self, name, pend_nodes = None):
-        super().__init__(name = name, compound = "true", directed = "true", newrank = "true")
+    def start_dec(self, nm):
         self.typ = dict()
-        if pend_nodes:
-            "not sure of this"
-            self.pend = pend_nodes
-    
-    def start_dec(self, gr, a, b):
-        aa = Sgton(a)
-        aa.add_sgton(self)
-        bb = Sgton(b)
-        bb.add_sgton(self)
-        nmroot = 'cluster_' + aa.nmr + '_' + bb.nmr
-        print(nmroot)
-        self.root = self.add_subgraph([aa.nmr, bb.nmr], name = nmroot)
-        if gr[a][b]:
-            "only modules and no clans for now"
-            self.typ[nmroot] = 1
-        else:
-            self.typ[nmroot] = 0                
-
-    def s_dec(self, gr):
-        aa = Sgton("a")
-        aa.add_sgton(self)
-        bb = Sgton("b")
-        bb.add_sgton(self)
-        nmroot = 'cluster_' + aa.nmr + '_' + bb.nmr
-        print(nmroot)
-        self.root = self.add_subgraph([aa.nmr, bb.nmr], name = nmroot)
-        if gr[a][b]:
-            "only modules and no clans for now"
-            self.typ[nmroot] = 1
-        else:
-            self.typ[nmroot] = 0                
+        if len(nm) > 1:
+            a, b, *rest = nm
+            nmroot = 'cluster_' + a + '_' + b
+            self.root = self.add_subgraph([a, b], name = nmroot)
+            if self.has_edge(a, b):
+                self.typ[nmroot] = 1
+                # ~ self.typ[nmroot] = self.get_edge(a, b).attr["label"]
+            else:
+                self.typ[nmroot] = 0                
+            self.pend = rest
+# ~ # double-checking with colored subgraph instead
+            # ~ self.root = self.add_subgraph([a, b], name = nmroot, style = 'filled', color = 'yellow')
+            # ~ print("a, b, rest:", a, b, rest, self.pend)
+            # ~ ggg = self.get_subgraph(nmroot)
+            # ~ ggg.draw("e13_" + nmroot + "_subgraph.png", prog = "dot")
 
     def add2tree(self, curr_root, curr_node):
         '''
-        case study according to -v and self.typ[curr_root]
+        case study according to v and self.typ[curr_root]
         complete cases:
         1a: all visib with same color of clan, node is added
         1b: some but not all, separate them, recursively add to them
@@ -156,30 +138,10 @@ if __name__ == "__main__":
             print("Found extension", ext, "instead of td for file", filename)
     else:
         fullfilename = filename + ".td"
-
-
+    
     gr, items = read_graph_in(fullfilename)
-    print(items)
-
-    dtree = DecompTree(delbl(filename))
-    
-    if len(items) > 8:
-        # ~ dtree.start_dec(gr, items[0], items[7])
-        dtree.s_dec(gr)
-        print(dtree.typ)
-        dtree.layout("dot")
-        dtree.draw("dt.png")
-
-    
-    # ~ print(dtree.name, dtree.graph_attr["newrank"])
-
-    
-
-
-
-
-    # ~ g = AGraph(name = delbl(filename), compound = "true", directed = "true", newrank = "true")
-    # ~ nm = make_agraph(gr, items, g)
+    g = AGraph(name = delbl(filename), compound = "true", directed = "true", newrank = "true")
+    nm = make_agraph(gr, items, g)
 
 # might use AGraph.iternodes instead of nm
 
@@ -189,21 +151,22 @@ if __name__ == "__main__":
     # ~ nm = make_agraph(gr, items, g2)
     # ~ g2.draw(filename + "_sgtons.png", prog = "dot")
     
-    # ~ g = OurAGraph(g.handle) # maybe it should not have the singletons from the start but acquire them in steps
+    g = OurAGraph(g.handle) # maybe it should not have the singletons from the start but acquire them in steps
     
 # create root with two first nodes to start the decomposition, test
-    # ~ g.start_dec(nm)
-    # ~ g.draw(filename + "_started.png", prog = "dot")
+    g.start_dec(nm)
+    g.draw(filename + "_started.png", prog = "dot")
     # ~ for nd in g.pend:
         # ~ print(nd, g.visib_dict(g.root, nd))
 # now should loop on g0.pend to insert all the pending nodes
-    # ~ for n in g.pend:
-        # ~ g.add2tree(g.root, n)
+    for n in g.pend:
+        g.add2tree(g.root, n)
 
 #    g.layout("dot") # unnecessary here, gets called from draw
-    # ~ g.draw(filename + "_redecomp.png", prog = "dot")
+    g.draw(filename + "_redecomp.png", prog = "dot")
 
 # Nejada's project may require nm to be sorted according to the edge labels
+# We must leave room for OurAGraph to sort in various ways the pend list
 
     
 
