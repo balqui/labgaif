@@ -33,13 +33,14 @@ class DecompTree(AGraph):
     but this is likely to change.
     '''
     
-    def __init__(self, name, pend_nodes = None):
-        super().__init__(name = name, compound = "true", directed = "true", newrank = "true")
+    def setup(self, name):
+        '''tried to do most of this upon __init__ but something ends up wrong'''
+        self.graph_attr.name = name
+        self.graph_attr.compound = "true"
+        self.graph_attr.directed = "true"
+        self.graph_attr.newrank = "true"
         self.typ = dict()
-        if pend_nodes:
-            "not sure of this"
-            self.pend = pend_nodes
-    
+
     def start_dec(self, gr, a, b):
         aa = Sgton(a)
         aa.add_sgton(self)
@@ -161,11 +162,12 @@ if __name__ == "__main__":
     gr, items = read_graph_in(fullfilename)
     print(items)
 
-    dtree = DecompTree(delbl(filename))
+    dtree = DecompTree()
+    dtree.setup(delbl(filename))
     
     if len(items) > 8:
-        # ~ dtree.start_dec(gr, items[0], items[7])
-        dtree.s_dec(gr)
+        dtree.start_dec(gr, items[0], items[7])
+        # ~ dtree.s_dec(gr)
         print(dtree.typ)
         dtree.layout("dot")
         dtree.draw("dt.png")
