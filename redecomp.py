@@ -48,28 +48,16 @@ class DecompTree(AGraph):
         bb.add_sgton(self)
         nmroot = 'cluster_' + aa.nmr + '_' + bb.nmr
         print(nmroot)
-        self.root = self.add_subgraph([aa.nmr, bb.nmr], name = nmroot)
+        self.root = self.add_subgraph([aa.nmr, bb.nmr], name = nmroot, rank = "same")
         if gr[a][b]:
             "only modules and no clans for now"
+            self.add_edge(aa.nmr, bb.nmr)
             self.typ[nmroot] = 1
         else:
             self.typ[nmroot] = 0                
 
-    def s_dec(self, gr):
-        aa = Sgton("a")
-        aa.add_sgton(self)
-        bb = Sgton("b")
-        bb.add_sgton(self)
-        nmroot = 'cluster_' + aa.nmr + '_' + bb.nmr
-        print(nmroot)
-        self.root = self.add_subgraph([aa.nmr, bb.nmr], name = nmroot)
-        if gr[a][b]:
-            "only modules and no clans for now"
-            self.typ[nmroot] = 1
-        else:
-            self.typ[nmroot] = 0                
 
-    def add2tree(self, curr_root, curr_node):
+    def add2tree(self, gr, curr_root, curr_node):
         '''
         case study according to -v and self.typ[curr_root]
         complete cases:
@@ -169,6 +157,11 @@ if __name__ == "__main__":
         dtree.start_dec(gr, items[0], items[7])
         # ~ dtree.s_dec(gr)
         print(dtree.typ)
+        
+        dtree.add2tree(gr, dtree.root, items[4])
+
+
+
         dtree.layout("dot")
         dtree.draw("dt.png")
 
