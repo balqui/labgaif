@@ -170,20 +170,34 @@ if __name__ == "__main__":
     dtree = DecompTree()
     dtree.setup(delbl(filename))
     
-    if len(nm) > 8:
-        dtree.start_dec(gr, Sgton(items[0]), Sgton(items[7])) 
-        print(dtree.typ)
-        print("next:", nm[4])
-        
-        dtree.add2tree(gr, dtree.root, Sgton(items[4]))
+# following test requires at least 3 items
+    # ~ dtree.start_dec(gr, Sgton(items[0]), Sgton(items[1])) 
+    # ~ dtree.add2tree(gr, dtree.root, Sgton(items[2]))
+    # ~ dtree.layout("dot")
+    # ~ dtree.draw("dte.png")
 
+# following tests only valid for Titanic
+    # ~ if len(nm) > 8:
+        # ~ dtree.start_dec(gr, Sgton(items[0]), Sgton(items[7])) 
+        # ~ print(dtree.typ)
+        # ~ print("next:", nm[4])
+        # ~ dtree.add2tree(gr, dtree.root, Sgton(items[4]))
+        # ~ dtree.layout("dot")
+        # ~ dtree.draw("dt.png")
 
-
-        dtree.layout("dot")
-        dtree.draw("dt.png")
+# Titanic nodes in order of edge weight, computed separately:
+    ittit = ['PTAgeadult', 'PTSexmale', 'PTSurvivedno', 'PTClasscrew', 'PTSurvivedyes', 'PTClassrd', 'PTSexfemale', 'PTClassst', 'PTClassnd', 'PTAgechild']    
+# Next goal not yet available: getting all the Titanic nodes in this order into the decomposition:
+    dtree.start_dec(gr, Sgton(ittit[0]), Sgton(ittit[1])) 
+    # ~ for it in ittit[2:]:
+        # ~ dtree.add2tree(gr, dtree.root, Sgton(it))
+    for it in ittit[2:3]:
+        # one more node
+        dtree.add2tree(gr, dtree.root, Sgton(it))
+    dtree.layout("dot")
+    dtree.draw("dt.png")
 
     
-    # ~ print(dtree.name, dtree.graph_attr["newrank"])
 
     
 
@@ -214,8 +228,6 @@ if __name__ == "__main__":
     # ~ g.draw(filename + "_redecomp.png", prog = "dot")
 
 # Nejada's project may require nm to be sorted according to the edge labels
-
-    
 
 
     

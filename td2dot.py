@@ -94,6 +94,28 @@ def make_agraph(gr, items, outgr):
 				outgr.add_edge(name[u], name[v], label = gr[u][v])
 	return sorted(name.values())
 
+def make_agraph_edge_sorted(gr, items, outgr):
+	'''outgr expected to be a pygraphviz's AGraph;
+	adds to it the pairs for the singletons and
+	returns the internal names for the representing points
+	'''
+	name = dict()
+	weight = defaultdict(int)
+	for n in items:
+		s = Sgton(n)
+		name[n] = s.nmr
+		s.add_sgton(outgr)
+	for u in gr:
+		for v in gr[u]:
+			if u <= v:
+				outgr.add_edge(name[u], name[v], label = gr[u][v])
+				weight[name[u]] = max(weight[name[u]], gr[u][v])
+				weight[name[v]] = max(weight[name[v]], gr[u][v])
+	print(weight)
+	return sorted(name.values(), key = lambda x: weight[x], reverse = True)
+
+
+
 if __name__ == "__main__":
     
     from argparse import ArgumentParser
@@ -139,11 +161,12 @@ if __name__ == "__main__":
     
     from pygraphviz import AGraph
     g = AGraph(name = delbl(filename))
-    nm = make_agraph(gr, items, g)
+    # ~ nm = make_agraph(gr, items, g)
+    nm = make_agraph_edge_sorted(gr, items, g)
     print("Internal AGraph names:", nm)
-    g.layout("dot")
-    g.draw(filename + "_sgtons.png")
-    g.write(filename + "_sgtons.dot")
+    # ~ g.layout("dot")
+    # ~ g.draw(filename + "_sgtons.png")
+    # ~ g.write(filename + "_sgtons.dot")
     
 
 
