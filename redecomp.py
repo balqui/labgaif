@@ -162,6 +162,7 @@ if __name__ == "__main__":
     nm = make_agraph(g_raw, items, gr)
     print(items)
     print(nm)
+    
     # ~ for i, j in combinations(nm, 2):
         # ~ if gr.has_edge(i, j):
             # ~ print(i, j, gr.get_edge(i, j).attr["label"])
@@ -189,7 +190,7 @@ if __name__ == "__main__":
 # Titanic nodes in order of edge weight, computed separately
 # CAREFUL, wrong list up to at least august 28
 #    ittit = ['PTAgeadult', 'PTSexmale', 'PTSurvivedno', 'PTClasscrew', 'PTSurvivedyes', 'PTClassrd', 'PTSexfemale', 'PTClassst', 'PTClassnd', 'PTAgechild']    
-    ittit = ['Ageadult', 'Sexmale', 'Survivedno', 'Classcrew', 'Survivedyes', 'Classrd', 'Sexfemale', 'Classst', 'Classnd', 'Agechild']
+    ittit = ['Age_Adult', 'Sex_Male', 'Survived_No', 'Class_Crew', 'Survived_Yes', 'Class_3rd', 'Sex_Female', 'Class_1st', 'Class_2nd', 'Age_Child']
 
 # Next goal not yet available: getting all the Titanic nodes in this order into the decomposition:
     dtree.start_dec(gr, Sgton(ittit[0]), Sgton(ittit[1])) 
