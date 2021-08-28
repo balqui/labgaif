@@ -103,7 +103,7 @@ def make_agraph_edge_sorted(gr, items, outgr):
 	weight = defaultdict(int)
 	for n in items:
 		s = Sgton(n)
-		name[n] = s.nmr
+		name[n] = s.nms
 		s.add_sgton(outgr)
 	for u in gr:
 		for v in gr[u]:

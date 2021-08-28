@@ -14,7 +14,7 @@ ToDo:
 '''
 
 from pygraphviz import AGraph
-from td2dot import read_graph_in, make_agraph
+from td2dot import read_graph_in, make_agraph #, make_agraph_edge_sorted
 from sgton import Sgton
 from auxfun import delbl
 from collections import defaultdict as ddict
@@ -161,11 +161,12 @@ if __name__ == "__main__":
     gr = AGraph(name = delbl(filename), directed = "false")
     nm = make_agraph(g_raw, items, gr)
     print(items)
-    for i, j in combinations(nm, 2):
-        if gr.has_edge(i, j):
-            print(i, j, gr.get_edge(i, j).attr["label"])
-        else:
-            print("no edge", i, j)
+    print(nm)
+    # ~ for i, j in combinations(nm, 2):
+        # ~ if gr.has_edge(i, j):
+            # ~ print(i, j, gr.get_edge(i, j).attr["label"])
+        # ~ else:
+            # ~ print("no edge", i, j)
 
     dtree = DecompTree()
     dtree.setup(delbl(filename))
@@ -185,13 +186,16 @@ if __name__ == "__main__":
         # ~ dtree.layout("dot")
         # ~ dtree.draw("dt.png")
 
-# Titanic nodes in order of edge weight, computed separately:
-    ittit = ['PTAgeadult', 'PTSexmale', 'PTSurvivedno', 'PTClasscrew', 'PTSurvivedyes', 'PTClassrd', 'PTSexfemale', 'PTClassst', 'PTClassnd', 'PTAgechild']    
+# Titanic nodes in order of edge weight, computed separately
+# CAREFUL, wrong list up to at least august 28
+#    ittit = ['PTAgeadult', 'PTSexmale', 'PTSurvivedno', 'PTClasscrew', 'PTSurvivedyes', 'PTClassrd', 'PTSexfemale', 'PTClassst', 'PTClassnd', 'PTAgechild']    
+    ittit = ['Ageadult', 'Sexmale', 'Survivedno', 'Classcrew', 'Survivedyes', 'Classrd', 'Sexfemale', 'Classst', 'Classnd', 'Agechild']
+
 # Next goal not yet available: getting all the Titanic nodes in this order into the decomposition:
     dtree.start_dec(gr, Sgton(ittit[0]), Sgton(ittit[1])) 
     # ~ for it in ittit[2:]:
         # ~ dtree.add2tree(gr, dtree.root, Sgton(it))
-    for it in ittit[2:3]:
+    for it in ittit[2:5]:
         # one more node
         dtree.add2tree(gr, dtree.root, Sgton(it))
     dtree.layout("dot")
