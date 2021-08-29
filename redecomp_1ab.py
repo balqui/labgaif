@@ -99,13 +99,6 @@ class DecompTree(AGraph):
                 print("Sending to sibling:", n)
                 to_sibling.append(n)
                 nmsibling += "_" + n
-                # make clan with to_sibling nodes plus recursive call on curr_node
-                # connect it with remaining curr_root
-                # clarify whether/how curr_root gets updated
-                #print("Node", node_to_add.nmr, "not added, case 1b not completed yet")
-            # first working solution included node to add directly now
-            # ~ medium_clan = self.subgraph([node_to_add.nmr], name = nmmedium)
-            # but now we want a recursive call to add it
 
             nmmedium = nmsibling + "_" + node_to_add.nmr
             if len(to_sibling) == 1:
