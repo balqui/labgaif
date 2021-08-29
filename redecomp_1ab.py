@@ -75,7 +75,7 @@ class DecompTree(AGraph):
         sz = len(curr_root)
         print("Adding", node_to_add.lbl, "to module", curr_root.name, "of size", sz)
 
-        vd = self.visib_dict(gr, curr_root, node_to_add.nmr)
+        vd = self.visib_dict(gr, curr_root, node_to_add.nmr)   # PENDING: control for presence of -1
 
         if len(vd[1 - self.typ[curr_root.name]]) == 0:
             'case 1a'
@@ -99,11 +99,6 @@ class DecompTree(AGraph):
                 print("Sending to sibling:", n)
                 to_sibling.append(n)
                 nmsibling += "_" + n
-                curr_root.remove_node(n)
-                if self.typ[curr_root.name] == 1:
-                    "disconnect node n from rest of module"
-                    for nn in curr_root.nodes(): 
-                        self.delete_edge(n,nn)
                 # make clan with to_sibling nodes plus recursive call on curr_node
                 # connect it with remaining curr_root
                 # clarify whether/how curr_root gets updated
@@ -113,36 +108,51 @@ class DecompTree(AGraph):
             # but now we want a recursive call to add it
 
             nmmedium = nmsibling + "_" + node_to_add.nmr
-            if len(to_sibling)==1:
-                '''
-                try one day a rec call but requires clans of size 1 accepted here
-                sibling clan unnecessary, just size-2 medium clan with new node and this one
-                complete but opposite to curr_root type
-                '''
-                print("Single sibling", to_sibling[0], nmmedium)
-                medium_clan = self.subgraph([node_to_add.nmr, to_sibling[0]], name = nmmedium, rank = "same")
-                self.typ[nmmedium] = 1 - self.typ[curr_root.name]
-                if self.typ[nmmedium] == 1:
-                    self.add_edge(node_to_add.nmr, to_sibling[0])
-                self.add_node("PT_"+nmmedium, shape = "point") 
-                self.add_edge("PT_"+nmmedium, to_sibling[0], lhead = nmmedium) # LOGICAL HEAD FAILS, WHY?
-                curr_root.add_node("PT_"+nmmedium)
-                if self.typ[curr_root.name] == 1:
-                    for n in curr_root.nodes():
-                        if n != "PT_"+nmmedium:
-                            self.add_edge("PT_"+nmmedium,n)
-
+            if len(to_sibling) == 1:
+                if to_sibling[0].startswith("PT_cluster"):
+                    sibl = self.get_subgraph(to_sibling[0][3:])
+                    self.add2tree(gr, sibl, node_to_add)
+                else:
+                    '''
+                    only sibling is a singleton:
+                    sibling clan unnecessary, just size-2 medium clan with new node and this one
+                    complete but opposite to curr_root type
+                    '''
+                    print("Single sibling", to_sibling[0], nmmedium)
+                    n = to_sibling[0]
+                    curr_root.remove_node(n)
+                    if self.typ[curr_root.name] == 1:
+                        "disconnect node n from rest of module"
+                        for nn in curr_root.nodes(): 
+                            self.delete_edge(n, nn)
+                    medium_clan = self.subgraph([node_to_add.nmr, to_sibling[0]], name = nmmedium, rank = "same")
+                    self.typ[nmmedium] = 1 - self.typ[curr_root.name]
+                    if self.typ[nmmedium] == 1:
+                        self.add_edge(node_to_add.nmr, to_sibling[0])
+                    self.add_node("PT_"+nmmedium, shape = "point") 
+                    self.add_edge("PT_"+nmmedium, to_sibling[0], lhead = nmmedium) # LOGICAL HEAD FAILS, WHY?
+                    curr_root.add_node("PT_"+nmmedium)
+                    if self.typ[curr_root.name] == 1:
+                        for n in curr_root.nodes():
+                            if n != "PT_"+nmmedium:
+                                self.add_edge("PT_"+nmmedium,n)
             else:
-                print("Size > 1 in to_sibling", nmsibling)
-                sibling_clan = self.subgraph(to_sibling, name = nmsibling)
-                self.typ[nmsibling] = self.typ[curr_root.name]
-                # rest should be handled as a recursive call
-                self.add_node("PT_"+nmsibling, shape = "point") 
-                # ~ medium_clan.add_node("PT_"+nmsibling)
-                for nn in sibling_clan.iternodes():
-                    # obtain a node nn in the clan, any node
-                    break          
-                self.add_edge("PT_"+nmsibling, nn)
+                print("Size > 1 in to_sibling", nmsibling, "not sure yet how to handle it")
+                for n in to_sibling:
+                    curr_root.remove_node(n)
+                    if self.typ[curr_root.name] == 1:
+                        "disconnect node n from rest of module"
+                        for nn in curr_root.nodes(): 
+                            self.delete_edge(n,nn)
+                # ~ sibling_clan = self.subgraph(to_sibling, name = nmsibling)
+                # ~ self.typ[nmsibling] = self.typ[curr_root.name]
+                # ~ # rest should be handled as a recursive call
+                # ~ self.add_node("PT_"+nmsibling, shape = "point") 
+                # ~ # medium_clan.add_node("PT_"+nmsibling)
+                # ~ for nn in sibling_clan.iternodes():
+                    # ~ # obtain a node nn in the clan, any node
+                    # ~ break          
+                # ~ self.add_edge("PT_"+nmsibling, nn)
             
             # ~ nmmedium = nmsibling+ "_"+node_to_add.nmr    
             # ~ medium_clan = self.subgraph([node_to_add.nmr,"PT_"+nmsibling], name = nmmedium)  
@@ -179,7 +189,7 @@ class DecompTree(AGraph):
           
         else:
             print("Node", node_to_add.nmr, "not added, case not covered so far")
-    
+
     def visib_dict(self, gr, cl, nd):
         '''
         Visibility test, very slow and limited for the time being;
@@ -192,10 +202,15 @@ class DecompTree(AGraph):
         for n in cl: 
             if n.name.startswith("PT_cluster"): 
                 "not sure whether get_subgraph might be slow"
-                print("-- rec call attempted here for:", n.name)
-                dd = self.visib_dict(gr, self.get_subgraph(n.name[3:]), nd)
+                print("-- recursive call in visib check for:", n.name)
+                subcl = self.get_subgraph(n.name[3:])
+                dd = self.visib_dict(gr, subcl, nd)
                 for c in dd:
-                    d[c] += dd[c]
+                    if len(dd[c]) == len(subcl):
+                        d[c].append(n)
+                        break
+                else:
+                    d[-1].append(n)
             else:
                 print("-- edge between", nd, "and", n, gr.has_edge(n, nd) or gr.has_edge(nd, n))
                 c = 1 if gr.has_edge(n, nd) or gr.has_edge(nd, n) else 0
@@ -255,7 +270,7 @@ if __name__ == "__main__":
 
 # Next goal not yet available: getting all the Titanic nodes in this order into the decomposition:
     dtree.start_dec(gr, Sgton(ittit[0]), Sgton(ittit[1])) 
-    szdraw = 8
+    szdraw = 10
     for it in ittit[2:szdraw]:
         dtree.add2tree(gr, dtree.root, Sgton(it))
     dtree.layout("dot")
