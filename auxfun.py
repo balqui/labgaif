@@ -5,6 +5,8 @@ Copyleft: MIT License (https://en.wikipedia.org/wiki/MIT_License)
 Assorted, auxiliary little functions.
 
 In delbl we should keep alphabetic versions of digits
+
+[Test of git issues, remove this line some day.]
 '''
 
 def delbl(lbl):
