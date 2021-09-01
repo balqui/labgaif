@@ -96,6 +96,7 @@ class DecompTree(AGraph):
                 # connect it with remaining curr_root
                 # clarify whether/how curr_root gets updated
                 print("Node", node_to_add.nmr, "not added, case 1b not completed yet")
+                print("Sibling")
         elif not vd[self.typ[curr_root.name]]:
             'case 1c'
             # aux_clan = curr_root
