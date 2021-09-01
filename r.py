@@ -22,7 +22,8 @@ class D(AGraph):
         self.add_node("a", shape = "point")
         self.add_node("b", shape = "point")
         self.add_subgraph(["a", "b"], name = 'cluster_a_b')
-
+        self.add_node("c", shape = "point")
+        self.add_edge("c",'cluster_a_b')
 d = D()
 
     
