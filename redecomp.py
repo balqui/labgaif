@@ -56,10 +56,19 @@ class DecompTree(AGraph):
         else:
             self.typ[nmroot] = 0                
 
+    def start_dec_1(self, gr, v):
+        "to test the new case sz == 1 of add2tree"
+        v.add_sgton(self)
+        nmroot = 'cluster_' + v.nmr
+        self.root = self.add_subgraph([v.nmr], name = nmroot, rank = "same")
+        print("Started with node", v.lbl)
+
     def add2tree(self, gr, curr_root, node_to_add):
         '''
-        curr_root assumed to have two nodes at least
-        if we improve this, we can simplify start_dec
+        so far, curr_root assumed to have two nodes at least,
+        now attempt at making it work with curr_root of size just
+        one vertex and, if it works, then we can simplify start_dec
+        and hopefully case 1c too;
         case study according to -v and self.typ[curr_root]
         complete cases:
         1a: all visib with same color of clan, node is added
@@ -75,6 +84,22 @@ class DecompTree(AGraph):
         sz = len(curr_root)
         print("Adding", node_to_add.lbl, "to module", curr_root.name, "of size", sz)
 
+        if sz == 1:
+            for n in curr_root:
+                "loop will run only once for the single vertex"
+                print("Checking for edge", n, node_to_add.nmr)
+                if gr.has_edge(n, node_to_add.nmr):
+                    "only modules and no clans for now"
+                    print("-- edge found")
+                    self.add_edge(n, node_to_add.nmr)
+                    self.typ[curr_root.name] = 1
+                else:
+                    print("-- edge not found")
+                    self.typ[curr_root.name] = 0
+            curr_root.add_node(node_to_add.nmr)
+            return
+# else, sz > 1:
+        print("Module", curr_root.name, "of type", self.typ[curr_root.name])
         vd = self.visib_dict(gr, curr_root, node_to_add.nmr)   # PENDING: control for presence of -1
 
         if len(vd[1 - self.typ[curr_root.name]]) == 0:
@@ -268,3 +293,11 @@ if __name__ == "__main__":
         dtree.add2tree(gr, dtree.root, Sgton(it))
     dtree.layout("dot")
     dtree.draw("dt" + str(szdraw) + ".png")
+
+
+# Alternative test using start decomp with a single node and calling add2tree with singleton module
+    # ~ dtree.start_dec_1(gr, Sgton(ittit[0]))
+    # ~ dtree.add2tree(gr, dtree.root, Sgton(ittit[1])) 
+    # ~ dtree.add2tree(gr, dtree.root, Sgton(ittit[2])) 
+    # ~ dtree.layout("dot")
+    # ~ dtree.draw("dt_1_1.png")
