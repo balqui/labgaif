@@ -11,7 +11,7 @@ In delbl we should keep alphabetic versions of digits
 
 def delbl(lbl):
 	'''reduce lbl to only alpha chars, capitalized'''
-	return ''.join( c for c in lbl if c.isalpha() ).capitalize()
+	return ''.join( c for c in lbl if c.isalnum() ).capitalize()
 
 def q(s):
     'quote string s'
