@@ -1,7 +1,7 @@
 #! /usr/bin/env python3
 
 '''
-Tests of the various cases; this file: only cases 1a (x2) and 1b
+Tests of the various cases; this file: only cases 1a (x2) and 1b (singleton sibling)
 '''
 
 from pygraphviz import AGraph
@@ -51,6 +51,10 @@ szdraw = 5
 for it in ittit[st:szdraw]:
     dtree.add2tree(gr, dtree.root, Sgton(it))
 dtree.layout("dot")
-dtree.draw("dt1a1b_" + str(szdraw) + "s" + str(st) + ".png")
+outfile = "dt1a1b00_" + str(szdraw) + "s" + str(st) + ".png"
+dtree.draw(outfile)
+print("Wrote", outfile)
+
+
 
 

@@ -84,7 +84,10 @@ class DecompTree(AGraph):
         '''
         node_to_add.add_sgton(self)
         sz = len(curr_root)
-        print("Adding", node_to_add.lbl, "to module", curr_root.name, "of size", sz)
+        oftype = ''
+        if curr_root.name in self.typ:
+            oftype = "of type " + str(self.typ[curr_root.name])
+        print("Adding", node_to_add.lbl, "to module", curr_root.name, "of size", sz, oftype)
 
         if sz == 1:
             for n in curr_root:
@@ -101,7 +104,6 @@ class DecompTree(AGraph):
             curr_root.add_node(node_to_add.nmr)
             return curr_root
 # else, sz > 1:
-        # ~ print("Module", curr_root.name, "of type", self.typ[curr_root.name])
         vd = self.visib_dict(gr, curr_root, node_to_add.nmr)   # PENDING: control for presence of -1
 
         if len(vd[1 - self.typ[curr_root.name]]) == 0:
@@ -138,7 +140,7 @@ class DecompTree(AGraph):
                     sibling clan unnecessary, just size-2 medium clan with new node and this one
                     complete but opposite to curr_root type
                     '''
-                    # ~ print("Single sibling", to_sibling[0], nmmedium)
+                    print("Single sibling", to_sibling[0])
                     n = to_sibling[0]
                     curr_root.remove_node(n)
                     if self.typ[curr_root.name] == 1:
@@ -157,13 +159,31 @@ class DecompTree(AGraph):
                             if n != "PT_"+nmmedium:
                                 self.add_edge("PT_"+nmmedium,n)
             else:
-                # ~ print("Size > 1 in to_sibling", nmsibling, "not sure yet how to handle it")
+                print("Size > 1 in to_sibling", nmsibling)
                 for n in to_sibling:
                     curr_root.remove_node(n)
-                    if self.typ[curr_root.name] == 1:
-                        "disconnect node n from rest of module"
+                    # ~ # wrong loop, it may disconnect things that go together later into to_sibling
+                    # ~ if self.typ[curr_root.name] == 1:
+                        # ~ "disconnect node n from rest of module"
+                        # ~ for nn in curr_root.nodes(): 
+                            # ~ self.delete_edge(n,nn)
+                if self.typ[curr_root.name] == 1:
+                    "now it is time for disconnecting once we know exactly who goes into to_sibling"
+                    for n in to_sibling:
                         for nn in curr_root.nodes(): 
-                            self.delete_edge(n,nn)
+                            self.remove_edge(n,nn)
+                sibling_clan = self.subgraph(to_sibling, name = nmsibling)
+                self.typ[nmsibling] = self.typ[curr_root.name] # recursive call may change this
+                sibling_clan = self.add2tree(gr, sibling_clan, node_to_add)
+                nmsiblingpt = "PT_" + sibling_clan.name
+                self.add_node(nmsiblingpt, shape = "point") 
+                # ~ print("self.typ", curr_root.name, self.typ[curr_root.name])
+                if self.typ[curr_root.name] == 1:
+                    for nn in curr_root.nodes(): 
+                        self.add_edge(nmsiblingpt,nn)
+                curr_root.add_node(nmsiblingpt)
+                self.add_edge(nmsiblingpt, grab_one(sibling_clan))
+
                 # ~ sibling_clan = self.subgraph(to_sibling, name = nmsibling)
                 # ~ self.typ[nmsibling] = self.typ[curr_root.name]
                 # ~ # rest should be handled as a recursive call
@@ -195,7 +215,7 @@ class DecompTree(AGraph):
                 
         elif not vd[self.typ[curr_root.name]]:
             'case 1c'
-            # aux_clan = curr_root
+            print("case is 1c: node and complete clan go into higher size-2 clan")
             pt_curr_root_nm = "PT_" + curr_root.name
             self.add_node(pt_curr_root_nm, shape = "point")
             # ~ trying to understand why lhead is not working 
@@ -207,7 +227,7 @@ class DecompTree(AGraph):
             new_clan = self.subgraph([pt_curr_root_nm, node_to_add.nmr], name = nmnew)
             
             if self.typ[curr_root.name] == 0:
-                new_clan.add_edge(pt_curr_root_nm, node_to_add.nmr)
+                self.add_edge(pt_curr_root_nm, node_to_add.nmr)
                 self.typ[nmnew] = 1  
             else:
                 self.typ[nmnew] = 0         
@@ -304,14 +324,24 @@ if __name__ == "__main__":
 # Titanic nodes in order of edge weight, computed separately:
     ittit = ['Age_Adult', 'Sex_Male', 'Survived_No', 'Class_Crew', 'Survived_Yes', 'Class_3rd', 'Sex_Female', 'Class_1st', 'Class_2nd', 'Age_Child']
 
+# starting with one or two vertices
+    st = 1
+    # ~ st = 2
+    
+    if st == 1:
+        dtree.start_dec_1(gr, Sgton(ittit[0]))
+    else:
+        dtree.start_dec(gr, Sgton(ittit[0]), Sgton(ittit[1])) 
+
 # Next goal not yet available: getting all the Titanic nodes in this order into the decomposition:
-    dtree.start_dec(gr, Sgton(ittit[0]), Sgton(ittit[1])) 
     szdraw = 9
-    for it in ittit[2:szdraw]:
+    for it in ittit[st:szdraw]:
         "careful, this has changed and now add2tree returns a possibly new root"
         dtree.root = dtree.add2tree(gr, dtree.root, Sgton(it))
     dtree.layout("dot")
-    dtree.draw("dt" + str(szdraw) + ".png")
+    outfile = "dt" + str(szdraw) + "s" + str(st) + ".png"
+    dtree.draw(outfile)
+    print("Wrote", outfile)
 
 
 # Alternative test using start decomp with a single node and calling add2tree with singleton module
