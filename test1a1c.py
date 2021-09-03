@@ -39,14 +39,16 @@ dtree = DecompTree()
 dtree.setup(delbl(filename))
 # ~ print(dtree.graph_attr.compound)
 
-dtree.start_dec(gr, Sgton(ittit[0]), Sgton(ittit[1])) 
+# starting with one vertex
+dtree.start_dec_1(gr, Sgton(ittit[0]))
 
 szdraw = 3
-for it in ittit[2:szdraw]:
+for it in ittit[1:szdraw]:
     dtree.add2tree(gr, dtree.root, Sgton(it))
 dtree.layout("dot")
-outfile = "dt1c0_" + str(szdraw) + "s2.png"
+outfile = "dt1a1c0_" + str(szdraw) + "s1.png"
 dtree.draw(outfile)
 print("Wrote", outfile)
+
 
 

@@ -35,7 +35,9 @@ class DecompTree(AGraph):
     '''
     
     def setup(self, name):
-        '''tried to do most of this upon __init__ but something ends up wrong'''
+        '''
+        tried to do most of this upon __init__ but something ends up wrong
+        '''
         self.graph_attr.name = name
         self.graph_attr.compound = "true"
         self.graph_attr.directed = "true"
@@ -47,8 +49,8 @@ class DecompTree(AGraph):
         a.add_sgton(self)
         b.add_sgton(self)
         nmroot = 'cluster_' + a.nmr + '_' + b.nmr
-        # ~ print(nmroot)
         self.root = self.add_subgraph([a.nmr, b.nmr], name = nmroot, rank = "same")
+        print(nmroot, "--- just tried to get rank same")
         if gr.has_edge(a.nmr, b.nmr):
             "only modules and no clans for now"
             self.add_edge(a.nmr, b.nmr)
@@ -97,7 +99,7 @@ class DecompTree(AGraph):
                     # ~ print("-- edge not found")
                     self.typ[curr_root.name] = 0
             curr_root.add_node(node_to_add.nmr)
-            return
+            return curr_root
 # else, sz > 1:
         # ~ print("Module", curr_root.name, "of type", self.typ[curr_root.name])
         vd = self.visib_dict(gr, curr_root, node_to_add.nmr)   # PENDING: control for presence of -1
@@ -195,7 +197,12 @@ class DecompTree(AGraph):
             'case 1c'
             # aux_clan = curr_root
             pt_curr_root_nm = "PT_" + curr_root.name
-            self.add_node(pt_curr_root_nm, shape = "point")#conectar PT de cuirrent_root a current_root
+            self.add_node(pt_curr_root_nm, shape = "point")
+            # ~ trying to understand why lhead is not working 
+            # ~ t = grab_one(curr_root)
+            # ~ print("compound?", self.graph_attr.compound, t, pt_curr_root_nm, curr_root.name, t in curr_root)
+            # ~ for n in curr_root: print(n)
+            self.add_edge(pt_curr_root_nm, grab_one(curr_root), lhead = curr_root.name) #conectar PT de cuirrent_root a current_root
             nmnew = curr_root.name + '_' + node_to_add.nmr
             new_clan = self.subgraph([pt_curr_root_nm, node_to_add.nmr], name = nmnew)
             
@@ -204,10 +211,11 @@ class DecompTree(AGraph):
                 self.typ[nmnew] = 1  
             else:
                 self.typ[nmnew] = 0         
-            curr_root = new_clan
+            return new_clan
           
         else:
             print("Node", node_to_add.nmr, "not added, case not covered so far")
+        return curr_root # unchanged in case no previous return was found
 
     def visib_dict(self, gr, cl, nd):
         '''
@@ -300,7 +308,8 @@ if __name__ == "__main__":
     dtree.start_dec(gr, Sgton(ittit[0]), Sgton(ittit[1])) 
     szdraw = 9
     for it in ittit[2:szdraw]:
-        dtree.add2tree(gr, dtree.root, Sgton(it))
+        "careful, this has changed and now add2tree returns a possibly new root"
+        dtree.root = dtree.add2tree(gr, dtree.root, Sgton(it))
     dtree.layout("dot")
     dtree.draw("dt" + str(szdraw) + ".png")
 

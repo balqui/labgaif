@@ -38,8 +38,8 @@ dtree = DecompTree()
 dtree.setup(delbl(filename))
 
 # starting with one or two vertices
-# ~ st = 1
-st = 2
+st = 1
+# ~ st = 2
 
 if st == 1:
     dtree.start_dec_1(gr, Sgton(ittit[0]))
@@ -50,6 +50,8 @@ szdraw = 4
 for it in ittit[st:szdraw]:
     dtree.add2tree(gr, dtree.root, Sgton(it))
 dtree.layout("dot")
-dtree.draw("dt1a_" + str(szdraw) + "s" + str(st) + ".png")
+outfile = "dt1a_" + str(szdraw) + "s" + str(st) + ".png"
+dtree.draw(outfile)
+print("Wrote", outfile)
 
 

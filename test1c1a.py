@@ -33,7 +33,7 @@ nm = make_agraph(g_raw, items, gr)
 
 # Titanic nodes in appropriate order for this case:
 # ~ ittit = ['Age_Adult', 'Sex_Male', 'Survived_No', 'Class_Crew', 'Survived_Yes', 'Class_3rd', 'Sex_Female', 'Class_1st', 'Class_2nd', 'Age_Child']
-ittit = ['Age_Adult', 'Class_Crew', 'Age_Child']
+ittit = ['Age_Adult', 'Class_Crew', 'Age_Child', 'Survived_Yes']
 
 dtree = DecompTree()
 dtree.setup(delbl(filename))
@@ -41,11 +41,11 @@ dtree.setup(delbl(filename))
 
 dtree.start_dec(gr, Sgton(ittit[0]), Sgton(ittit[1])) 
 
-szdraw = 3
+szdraw = 4
 for it in ittit[2:szdraw]:
-    dtree.add2tree(gr, dtree.root, Sgton(it))
+    dtree.root = dtree.add2tree(gr, dtree.root, Sgton(it))
 dtree.layout("dot")
-outfile = "dt1c0_" + str(szdraw) + "s2.png"
+outfile = "dt1c1a0_" + str(szdraw) + "s2.png"
 dtree.draw(outfile)
 print("Wrote", outfile)
 
