@@ -84,7 +84,10 @@ class DecompTree(AGraph):
         '''
         node_to_add.add_sgton(self)
         sz = len(curr_root)
-        print("Adding", node_to_add.lbl, "to module", curr_root.name, "of size", sz)
+        oftype = ''
+        if curr_root.name in self.typ:
+            oftype = "of type " + str(self.typ[curr_root.name])
+        print("Adding", node_to_add.lbl, "to module", curr_root.name, "of size", sz, oftype)
 
         if sz == 1:
             for n in curr_root:
@@ -101,7 +104,6 @@ class DecompTree(AGraph):
             curr_root.add_node(node_to_add.nmr)
             return curr_root
 # else, sz > 1:
-        # ~ print("Module", curr_root.name, "of type", self.typ[curr_root.name])
         vd = self.visib_dict(gr, curr_root, node_to_add.nmr)   # PENDING: control for presence of -1
 
         if len(vd[1 - self.typ[curr_root.name]]) == 0:
@@ -304,14 +306,24 @@ if __name__ == "__main__":
 # Titanic nodes in order of edge weight, computed separately:
     ittit = ['Age_Adult', 'Sex_Male', 'Survived_No', 'Class_Crew', 'Survived_Yes', 'Class_3rd', 'Sex_Female', 'Class_1st', 'Class_2nd', 'Age_Child']
 
+# starting with one or two vertices
+    st = 1
+    # ~ st = 2
+    
+    if st == 1:
+        dtree.start_dec_1(gr, Sgton(ittit[0]))
+    else:
+        dtree.start_dec(gr, Sgton(ittit[0]), Sgton(ittit[1])) 
+
 # Next goal not yet available: getting all the Titanic nodes in this order into the decomposition:
-    dtree.start_dec(gr, Sgton(ittit[0]), Sgton(ittit[1])) 
     szdraw = 9
-    for it in ittit[2:szdraw]:
+    for it in ittit[st:szdraw]:
         "careful, this has changed and now add2tree returns a possibly new root"
         dtree.root = dtree.add2tree(gr, dtree.root, Sgton(it))
     dtree.layout("dot")
-    dtree.draw("dt" + str(szdraw) + ".png")
+    outfile = "dt" + str(szdraw) + "s" + str(st) + ".png"
+    dtree.draw(outfile)
+    print("Wrote", outfile)
 
 
 # Alternative test using start decomp with a single node and calling add2tree with singleton module
