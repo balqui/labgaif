@@ -67,10 +67,10 @@ class DecompTree(AGraph):
 
     def add2tree(self, gr, curr_root, node_to_add):
         '''
-        so far, curr_root assumed to have two nodes at least,
+        formerly, curr_root assumed to have two nodes at least,
         now attempt at making it work with curr_root of size just
-        one vertex and, if it works, then we can simplify start_dec
-        and hopefully case 1c too;
+        one vertex and, as it seems to work, we can simplify start_dec
+        and case 1c;
         case study according to -v and self.typ[curr_root]
         complete cases:
         1a: all visib with same color of clan, node is added
@@ -105,8 +105,8 @@ class DecompTree(AGraph):
             return curr_root
 # else, sz > 1:
         vd = self.visib_dict(gr, curr_root, node_to_add.nmr)   # PENDING: control for presence of -1
-
-        if len(vd[1 - self.typ[curr_root.name]]) == 0:
+        print(vd)
+        if len(vd[1 - self.typ[curr_root.name]]) == 0 and len(vd[-1]) == 0:
             'case 1a'
             print("case is 1a: node to be added and clan still complete")
             curr_root.add_node(node_to_add.nmr)
@@ -115,7 +115,7 @@ class DecompTree(AGraph):
                     if n != node_to_add.nmr:
                         curr_root.add_edge(n, node_to_add.nmr)
 
-        elif vd[self.typ[curr_root.name]]:
+        elif vd[self.typ[curr_root.name]] and len(vd[-1]) == 0:
             'case 1b'
             print("case is 1b: node to be added to sibling")
             to_sibling = list()
@@ -132,15 +132,16 @@ class DecompTree(AGraph):
             nmmedium = nmsibling + "_" + node_to_add.nmr
             if len(to_sibling) == 1:
                 if to_sibling[0].startswith("PT_cluster"):
+                    print("Single nonsingleton sibling", to_sibling[0])
                     sibl = self.get_subgraph(to_sibling[0][3:])
-                    self.add2tree(gr, sibl, node_to_add)
+                    self.add2tree(gr, sibl, node_to_add) # what about the returning clan?
                 else:
                     '''
                     only sibling is a singleton:
                     sibling clan unnecessary, just size-2 medium clan with new node and this one
                     complete but opposite to curr_root type
                     '''
-                    print("Single sibling", to_sibling[0])
+                    print("Single singleton sibling", to_sibling[0])
                     n = to_sibling[0]
                     curr_root.remove_node(n)
                     if self.typ[curr_root.name] == 1:
@@ -213,7 +214,7 @@ class DecompTree(AGraph):
                 # ~ break            
             # ~ self.add_edge("PT_"+nmmedium, nn) #arrowhead = "none"
                 
-        elif not vd[self.typ[curr_root.name]]:
+        elif not vd[self.typ[curr_root.name]] and len(vd[-1]) == 0:
             'case 1c'
             print("case is 1c: node and complete clan go into higher size-2 clan")
             pt_curr_root_nm = "PT_" + curr_root.name

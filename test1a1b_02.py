@@ -1,7 +1,7 @@
 #! /usr/bin/env python3
 
 '''
-Tests of the various cases; this file: only cases 1a (x2) and 1b (singleton sibling)
+Tests of the various cases; this file: only cases 1a (x2) and 1b (single nonsingleton sibling)
 '''
 
 from pygraphviz import AGraph
@@ -32,7 +32,8 @@ nm = make_agraph(g_raw, items, gr)
 # ~ show_graph(gr, items, nm)
 
 # Titanic nodes in order of edge weight, computed separately:
-ittit = ['Age_Adult', 'Sex_Male', 'Survived_No', 'Class_Crew', 'Survived_Yes', 'Class_3rd', 'Sex_Female', 'Class_1st', 'Class_2nd', 'Age_Child']
+# ittit = ['Age_Adult', 'Sex_Male', 'Survived_No', 'Class_Crew', 'Survived_Yes', 'Class_3rd', 'Sex_Female', 'Class_1st', 'Class_2nd', 'Age_Child']
+ittit = ['Sex_Male', 'Survived_No', 'Class_Crew', 'Class_3rd', 'Class_1st', 'Class_2nd', 'Age_Child']
 
 dtree = DecompTree()
 dtree.setup(delbl(filename))
@@ -46,11 +47,11 @@ if st == 1:
 else:
     dtree.start_dec(gr, Sgton(ittit[0]), Sgton(ittit[1])) 
 
-szdraw = 5
+szdraw = 7
 for it in ittit[st:szdraw]:
     dtree.add2tree(gr, dtree.root, Sgton(it))
 dtree.layout("dot")
-outfile = "dt1a1b00_" + str(szdraw) + "s" + str(st) + ".png"
+outfile = "dt1a1b02_" + str(szdraw) + "s" + str(st) + ".png"
 dtree.draw(outfile)
 print("Wrote", outfile)
 
