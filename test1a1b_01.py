@@ -8,7 +8,6 @@ from pygraphviz import AGraph
 from td2dot import read_graph_in, make_agraph
 from sgton import Sgton
 from auxfun import delbl
-# ~ from collections import defaultdict as ddict
 from itertools import combinations
 from redecomp import DecompTree
 
