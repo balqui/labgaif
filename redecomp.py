@@ -35,7 +35,9 @@ class DecompTree(AGraph):
     '''
     
     def setup(self, name):
-        '''tried to do most of this upon __init__ but something ends up wrong'''
+        '''
+        tried to do most of this upon __init__ but something ends up wrong
+        '''
         self.graph_attr.name = name
         self.graph_attr.compound = "true"
         self.graph_attr.directed = "true"
@@ -43,12 +45,12 @@ class DecompTree(AGraph):
         self.typ = dict()
 
     def start_dec(self, gr, a, b):
-        # ~ print("at start with:", a.dump_sgton(), b.dump_sgton())
+        print("Started with nodes:", a.lbl, b.lbl)
         a.add_sgton(self)
         b.add_sgton(self)
         nmroot = 'cluster_' + a.nmr + '_' + b.nmr
-        # ~ print(nmroot)
         self.root = self.add_subgraph([a.nmr, b.nmr], name = nmroot, rank = "same")
+        print(nmroot, "--- just tried to get rank same")
         if gr.has_edge(a.nmr, b.nmr):
             "only modules and no clans for now"
             self.add_edge(a.nmr, b.nmr)
@@ -87,19 +89,19 @@ class DecompTree(AGraph):
         if sz == 1:
             for n in curr_root:
                 "loop will run only once for the single vertex"
-                print("Checking for edge", n, node_to_add.nmr)
+                # ~ print("Checking for edge", n, node_to_add.nmr)
                 if gr.has_edge(n, node_to_add.nmr):
                     "only modules and no clans for now"
-                    print("-- edge found")
+                    # ~ print("-- edge found")
                     self.add_edge(n, node_to_add.nmr)
                     self.typ[curr_root.name] = 1
                 else:
-                    print("-- edge not found")
+                    # ~ print("-- edge not found")
                     self.typ[curr_root.name] = 0
             curr_root.add_node(node_to_add.nmr)
-            return
+            return curr_root
 # else, sz > 1:
-        print("Module", curr_root.name, "of type", self.typ[curr_root.name])
+        # ~ print("Module", curr_root.name, "of type", self.typ[curr_root.name])
         vd = self.visib_dict(gr, curr_root, node_to_add.nmr)   # PENDING: control for presence of -1
 
         if len(vd[1 - self.typ[curr_root.name]]) == 0:
@@ -121,7 +123,7 @@ class DecompTree(AGraph):
                 create sibling clan with the rest;
                 this must become more sophisticate if we move beyond edges/nonedges
                 '''
-                print("Sending to sibling:", n)
+                # ~ print("Sending to sibling:", n)
                 to_sibling.append(n)
                 nmsibling += "_" + n
 
@@ -136,7 +138,7 @@ class DecompTree(AGraph):
                     sibling clan unnecessary, just size-2 medium clan with new node and this one
                     complete but opposite to curr_root type
                     '''
-                    print("Single sibling", to_sibling[0], nmmedium)
+                    # ~ print("Single sibling", to_sibling[0], nmmedium)
                     n = to_sibling[0]
                     curr_root.remove_node(n)
                     if self.typ[curr_root.name] == 1:
@@ -155,7 +157,7 @@ class DecompTree(AGraph):
                             if n != "PT_"+nmmedium:
                                 self.add_edge("PT_"+nmmedium,n)
             else:
-                print("Size > 1 in to_sibling", nmsibling, "not sure yet how to handle it")
+                # ~ print("Size > 1 in to_sibling", nmsibling, "not sure yet how to handle it")
                 for n in to_sibling:
                     curr_root.remove_node(n)
                     if self.typ[curr_root.name] == 1:
@@ -194,19 +196,26 @@ class DecompTree(AGraph):
         elif not vd[self.typ[curr_root.name]]:
             'case 1c'
             # aux_clan = curr_root
-            self.add_node("PT_"+curr_root.name)#conectar PT de cuirrent_root a current_root
+            pt_curr_root_nm = "PT_" + curr_root.name
+            self.add_node(pt_curr_root_nm, shape = "point")
+            # ~ trying to understand why lhead is not working 
+            # ~ t = grab_one(curr_root)
+            # ~ print("compound?", self.graph_attr.compound, t, pt_curr_root_nm, curr_root.name, t in curr_root)
+            # ~ for n in curr_root: print(n)
+            self.add_edge(pt_curr_root_nm, grab_one(curr_root), lhead = curr_root.name) #conectar PT de cuirrent_root a current_root
             nmnew = curr_root.name + '_' + node_to_add.nmr
-            new_clan = self.subgraph(["PT_"+curr_root.name,node_to_add.nmr], name = nmnew)
+            new_clan = self.subgraph([pt_curr_root_nm, node_to_add.nmr], name = nmnew)
             
             if self.typ[curr_root.name] == 0:
-                new_clan.add_edge("PT_"+curr_root.name,node_to_add.nmr)
+                new_clan.add_edge(pt_curr_root_nm, node_to_add.nmr)
                 self.typ[nmnew] = 1  
             else:
                 self.typ[nmnew] = 0         
-            curr_root = new_clan
+            return new_clan
           
         else:
             print("Node", node_to_add.nmr, "not added, case not covered so far")
+        return curr_root # unchanged in case no previous return was found
 
     def visib_dict(self, gr, cl, nd):
         '''
@@ -215,12 +224,12 @@ class DecompTree(AGraph):
         which color, if any, are they seen from nd, class -1 if not seen;
         later must expand to treat adequately coarsest-quotient nodes.
         '''
-        print("Visib check for", cl.name, nd)
+        # ~ print("Visib check for", cl.name, nd)
         d = ddict(list)
         for n in cl: 
             if n.name.startswith("PT_cluster"): 
                 "not sure whether get_subgraph might be slow"
-                print("-- recursive call in visib check for:", n.name)
+                # ~ print("-- recursive call in visib check for:", n.name)
                 subcl = self.get_subgraph(n.name[3:])
                 dd = self.visib_dict(gr, subcl, nd)
                 for c in dd:
@@ -230,12 +239,21 @@ class DecompTree(AGraph):
                 else:
                     d[-1].append(n)
             else:
-                print("-- edge between", nd, "and", n, gr.has_edge(n, nd) or gr.has_edge(nd, n))
+                # ~ print("-- edge between", nd, "and", n, gr.has_edge(n, nd) or gr.has_edge(nd, n))
                 c = 1 if gr.has_edge(n, nd) or gr.has_edge(nd, n) else 0
                 d[c].append(n)
-                print("--", n, "appended to color", c)
-        print(d)
+                # ~ print("--", n, "appended to color", c)
+        # ~ print(d)
         return d
+
+def grab_one(something):
+	'''
+	get some element from the something, that must be iterable and nonempty
+	(probably there is some standard way to do this)
+	'''
+	for e in something:
+		return e
+
 
 if __name__ == "__main__":
     
@@ -288,9 +306,10 @@ if __name__ == "__main__":
 
 # Next goal not yet available: getting all the Titanic nodes in this order into the decomposition:
     dtree.start_dec(gr, Sgton(ittit[0]), Sgton(ittit[1])) 
-    szdraw = 10
+    szdraw = 9
     for it in ittit[2:szdraw]:
-        dtree.add2tree(gr, dtree.root, Sgton(it))
+        "careful, this has changed and now add2tree returns a possibly new root"
+        dtree.root = dtree.add2tree(gr, dtree.root, Sgton(it))
     dtree.layout("dot")
     dtree.draw("dt" + str(szdraw) + ".png")
 
