@@ -1,7 +1,7 @@
 #! /usr/bin/env python3
 
 '''
-Tests of the various cases; this file: only case 1c
+Tests of the various cases; this file: case 1c preceded by 1a
 '''
 
 from pygraphviz import AGraph

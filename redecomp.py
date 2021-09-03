@@ -140,7 +140,7 @@ class DecompTree(AGraph):
                     sibling clan unnecessary, just size-2 medium clan with new node and this one
                     complete but opposite to curr_root type
                     '''
-                    # ~ print("Single sibling", to_sibling[0], nmmedium)
+                    print("Single sibling", to_sibling[0])
                     n = to_sibling[0]
                     curr_root.remove_node(n)
                     if self.typ[curr_root.name] == 1:
@@ -159,13 +159,31 @@ class DecompTree(AGraph):
                             if n != "PT_"+nmmedium:
                                 self.add_edge("PT_"+nmmedium,n)
             else:
-                # ~ print("Size > 1 in to_sibling", nmsibling, "not sure yet how to handle it")
+                print("Size > 1 in to_sibling", nmsibling)
                 for n in to_sibling:
                     curr_root.remove_node(n)
-                    if self.typ[curr_root.name] == 1:
-                        "disconnect node n from rest of module"
+                    # ~ # wrong loop, it may disconnect things that go together later into to_sibling
+                    # ~ if self.typ[curr_root.name] == 1:
+                        # ~ "disconnect node n from rest of module"
+                        # ~ for nn in curr_root.nodes(): 
+                            # ~ self.delete_edge(n,nn)
+                if self.typ[curr_root.name] == 1:
+                    "now it is time for disconnecting once we know exactly who goes into to_sibling"
+                    for n in to_sibling:
                         for nn in curr_root.nodes(): 
-                            self.delete_edge(n,nn)
+                            self.remove_edge(n,nn)
+                sibling_clan = self.subgraph(to_sibling, name = nmsibling)
+                self.typ[nmsibling] = self.typ[curr_root.name] # recursive call may change this
+                sibling_clan = self.add2tree(gr, sibling_clan, node_to_add)
+                nmsiblingpt = "PT_" + sibling_clan.name
+                self.add_node(nmsiblingpt, shape = "point") 
+                # ~ print("self.typ", curr_root.name, self.typ[curr_root.name])
+                if self.typ[curr_root.name] == 1:
+                    for nn in curr_root.nodes(): 
+                        self.add_edge(nmsiblingpt,nn)
+                curr_root.add_node(nmsiblingpt)
+                self.add_edge(nmsiblingpt, grab_one(sibling_clan))
+
                 # ~ sibling_clan = self.subgraph(to_sibling, name = nmsibling)
                 # ~ self.typ[nmsibling] = self.typ[curr_root.name]
                 # ~ # rest should be handled as a recursive call
@@ -197,7 +215,7 @@ class DecompTree(AGraph):
                 
         elif not vd[self.typ[curr_root.name]]:
             'case 1c'
-            # aux_clan = curr_root
+            print("case is 1c: node and complete clan go into higher size-2 clan")
             pt_curr_root_nm = "PT_" + curr_root.name
             self.add_node(pt_curr_root_nm, shape = "point")
             # ~ trying to understand why lhead is not working 
@@ -209,7 +227,7 @@ class DecompTree(AGraph):
             new_clan = self.subgraph([pt_curr_root_nm, node_to_add.nmr], name = nmnew)
             
             if self.typ[curr_root.name] == 0:
-                new_clan.add_edge(pt_curr_root_nm, node_to_add.nmr)
+                self.add_edge(pt_curr_root_nm, node_to_add.nmr)
                 self.typ[nmnew] = 1  
             else:
                 self.typ[nmnew] = 0         
