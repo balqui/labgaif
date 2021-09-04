@@ -27,7 +27,7 @@ filename = "titanic_"
 fullfilename = filename + ".td"
 
 g_raw, items = read_graph_in(fullfilename)
-gr = AGraph(name = delbl(filename), directed = "false")
+gr = AGraph(name = delbl(filename), directed = False)
 nm = make_agraph(g_raw, items, gr)
 # ~ show_graph(gr, items, nm)
 
@@ -35,7 +35,7 @@ nm = make_agraph(g_raw, items, gr)
 # ~ ittit = ['Age_Adult', 'Sex_Male', 'Survived_No', 'Class_Crew', 'Survived_Yes', 'Class_3rd', 'Sex_Female', 'Class_1st', 'Class_2nd', 'Age_Child']
 ittit = ['Age_Adult', 'Class_Crew', 'Age_Child']
 
-dtree = DecompTree()
+dtree = DecompTree(compound = True, newrank = True)
 dtree.setup(delbl(filename))
 # ~ print(dtree.graph_attr.compound)
 
