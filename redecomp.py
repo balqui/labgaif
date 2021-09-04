@@ -19,7 +19,6 @@ from sgton import Sgton
 from auxfun import delbl
 from collections import defaultdict as ddict
 from itertools import combinations
-
 VERSION = "0.1 beta"
 
 class DecompTree(AGraph):
@@ -37,11 +36,13 @@ class DecompTree(AGraph):
     def setup(self, name):
         '''
         tried to do most of this upon __init__ but something ends up wrong
+        however this workaround does not seem to work either, trying now
+        setting these up with the constructing call
         '''
         self.graph_attr.name = name
-        self.graph_attr.compound = "true"
+        # ~ self.graph_attr.compound = "true"
         self.graph_attr.directed = "true"
-        self.graph_attr.newrank = "true"
+        # ~ self.graph_attr.newrank = "true"
         self.typ = dict()
 
     def start_dec(self, gr, a, b):
@@ -49,8 +50,7 @@ class DecompTree(AGraph):
         a.add_sgton(self)
         b.add_sgton(self)
         nmroot = 'cluster_' + a.nmr + '_' + b.nmr
-        self.root = self.add_subgraph([a.nmr, b.nmr], name = nmroot, rank = "same")
-        print(nmroot, "--- just tried to get rank same")
+        self.root = self.add_subgraph([a.nmr, b.nmr], name = nmroot) # , rank = "same")
         if gr.has_edge(a.nmr, b.nmr):
             "only modules and no clans for now"
             self.add_edge(a.nmr, b.nmr)
@@ -62,7 +62,7 @@ class DecompTree(AGraph):
         "to test the new case sz == 1 of add2tree"
         v.add_sgton(self)
         nmroot = 'cluster_' + v.nmr
-        self.root = self.add_subgraph([v.nmr], name = nmroot, rank = "same")
+        self.root = self.add_subgraph([v.nmr], name = nmroot) #, rank = "same") # not good for over 2 vertices
         print("Started with node", v.lbl)
 
     def add2tree(self, gr, curr_root, node_to_add):
@@ -148,7 +148,7 @@ class DecompTree(AGraph):
                         "disconnect node n from rest of module"
                         for nn in curr_root.nodes(): 
                             self.delete_edge(n, nn)
-                    medium_clan = self.subgraph([node_to_add.nmr, to_sibling[0]], name = nmmedium, rank = "same")
+                    medium_clan = self.subgraph([node_to_add.nmr, to_sibling[0]], name = nmmedium) # , rank = "same")
                     self.typ[nmmedium] = 1 - self.typ[curr_root.name]
                     if self.typ[nmmedium] == 1:
                         self.add_edge(node_to_add.nmr, to_sibling[0])
@@ -309,7 +309,7 @@ if __name__ == "__main__":
 
 
     g_raw, items = read_graph_in(fullfilename)
-    gr = AGraph(name = delbl(filename), directed = "false")
+    gr = AGraph(name = delbl(filename), directed = False)
     nm = make_agraph(g_raw, items, gr)
     # ~ # show the graph data on console if convenient:
     # ~ print(items)
@@ -319,7 +319,7 @@ if __name__ == "__main__":
         # ~ else:
             # ~ print("no edge", i, j)
 
-    dtree = DecompTree()
+    dtree = DecompTree(compound = True, newrank = True)
     dtree.setup(delbl(filename))
 
 # Titanic nodes in order of edge weight, computed separately:
