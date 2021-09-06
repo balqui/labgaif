@@ -37,7 +37,7 @@ nm = make_agraph(g_raw, items, gr)
 
 ittit = ['Age_Adult', 'Sex_Male', 'Class_Crew', 'Age_Child']
 
-dtree = DecompTree()
+dtree = DecompTree(compound = True, newrank = True)
 dtree.setup(delbl(filename))
 
 # starting with one or two vertices
@@ -52,6 +52,8 @@ else:
 szdraw = 4
 for it in ittit[st:szdraw]:
     dtree.add2tree(gr, dtree.root, Sgton(it))
+
+dtree.flatten_ranks()
 dtree.layout("dot")
 outfile = "dt1a1b01_" + str(szdraw) + "s" + str(st) + ".png"
 dtree.draw(outfile)

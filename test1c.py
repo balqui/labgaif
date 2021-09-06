@@ -41,9 +41,10 @@ dtree.setup(delbl(filename))
 
 dtree.start_dec(gr, Sgton(ittit[0]), Sgton(ittit[1])) 
 
-szdraw = 3
+szdraw = 4
 for it in ittit[2:szdraw]:
-    dtree.add2tree(gr, dtree.root, Sgton(it))
+    dtree.root = dtree.add2tree(gr, dtree.root, Sgton(it))
+dtree.flatten_ranks()
 dtree.layout("dot")
 outfile = "dt1c0_" + str(szdraw) + "s2.png"
 dtree.draw(outfile)

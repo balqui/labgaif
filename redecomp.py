@@ -35,7 +35,7 @@ class DecompTree(AGraph):
     
     def setup(self, name):
         '''
-        tried to do most of this upon __init__ but something ends up wrong
+        tried to do most of this upon __init__ but something ends up wrong;
         however this workaround does not seem to work either, trying now
         setting these up with the constructing call
         '''
@@ -44,6 +44,24 @@ class DecompTree(AGraph):
         self.graph_attr.directed = "true"
         # ~ self.graph_attr.newrank = "true"
         self.typ = dict()
+
+    def clus_from_repr(self, name):
+        "from node name pointing to cluster PT_..., get the cluster name"
+        if name.startswith("PT_cluster"):
+            return self.get_subgraph(name[3:])
+
+    def flatten_ranks(self, clus = None):
+        "set rank at same for modules without edges or modules of size 2"
+        if clus is None:
+            clus = self.root
+        print("flattening:", clus, "rank" in clus.graph_attr)
+        if len(clus) < 3 or self.typ[clus.name] == 0:
+            clus.graph_attr["rank"] = "same"
+        print("flattened:", clus, "rank" in clus.graph_attr)
+        for nm in clus:
+            n = self.clus_from_repr(nm)
+            if n is not None:
+                self.flatten_ranks(n)
 
     def start_dec(self, gr, a, b):
         print("Started with nodes:", a.lbl, b.lbl)
@@ -132,7 +150,7 @@ class DecompTree(AGraph):
             nmmedium = nmsibling + "_" + node_to_add.nmr
             if len(to_sibling) == 1:
                 if to_sibling[0].startswith("PT_cluster"):
-                    print("Single nonsingleton sibling", to_sibling[0])
+                    print("Single nonsingleton sibling", to_sibling[0]) # consider function clus_from_repr
                     sibl = self.get_subgraph(to_sibling[0][3:])
                     self.add2tree(gr, sibl, node_to_add) # what about the returning clan?
                 else:
@@ -339,6 +357,7 @@ if __name__ == "__main__":
     for it in ittit[st:szdraw]:
         "careful, this has changed and now add2tree returns a possibly new root"
         dtree.root = dtree.add2tree(gr, dtree.root, Sgton(it))
+    dtree.flatten_ranks()
     dtree.layout("dot")
     outfile = "dt" + str(szdraw) + "s" + str(st) + ".png"
     dtree.draw(outfile)

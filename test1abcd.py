@@ -57,6 +57,7 @@ else:
 szdraw = 7
 for it in ittit[st:szdraw]:
     dtree.root = dtree.add2tree(gr, dtree.root, Sgton(it))
+dtree.flatten_ranks()
 dtree.layout("dot")
 outfile = "dt1abcd_" + str(szdraw) + "s" + str(st) + "_00.png"
 dtree.draw(outfile)
