@@ -54,10 +54,10 @@ class DecompTree(AGraph):
         "set rank at same for modules without edges or modules of size 2"
         if clus is None:
             clus = self.root
-        print("flattening:", clus, "rank" in clus.graph_attr)
+        print("flattening:", clus, '/' + clus.graph_attr["rank"] + '/' if "rank" in clus.graph_attr else "no rank")
         if len(clus) < 3 or self.typ[clus.name] == 0:
             clus.graph_attr["rank"] = "same"
-        print("flattened:", clus, "rank" in clus.graph_attr)
+        print("flattened:", clus, '/' + clus.graph_attr["rank"] + '/' if "rank" in clus.graph_attr else "no rank")
         for nm in clus:
             n = self.clus_from_repr(nm)
             if n is not None:
