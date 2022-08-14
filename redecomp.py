@@ -7,7 +7,7 @@ constructed with separate singletons by make_agraph in
 labgaif/td2dot.py
 
 ToDo: 
-. proper init of OurAGraph class
+. proper init of OurAGraph class (see file CAREFUL.txt)
 . try iterator on nodes instead of storing the nm list
 . better yet, allow for an external iterator eg on decreasing edge weights
 
@@ -35,15 +35,16 @@ class DecompTree(AGraph):
     
     def setup(self, name):
         '''
-        tried to do most of this upon __init__ but something ends up wrong;
-        however this workaround does not seem to work either, trying now
-        setting these up with the constructing call
+        tried to do most of this upon __init__ but ends up wrong
+        (see file CAREFUL.txt); 
+        name and directed only seem to work upon constructing call, 
+        not here at all; the others give the choice.
         '''
-        self.graph_attr.name = name
-        # ~ self.graph_attr.compound = "true"
-        self.graph_attr.directed = "true"
-        # ~ self.graph_attr.newrank = "true"
         self.typ = dict()
+        # ~ self.graph_attr["compound"] = "true" # this works here and also at constructing call
+        # ~ self.graph_attr["newrank"] = "true" # this works here and also at constructing call
+        # ~ self.graph_attr["directed"] = True # does not seem to have an effect
+        # ~ self.graph_attr.name = name
 
     def clus_from_repr(self, name):
         "from node name pointing to cluster PT_..., get the cluster name"
@@ -54,10 +55,11 @@ class DecompTree(AGraph):
         "set rank at same for modules without edges or modules of size 2"
         if clus is None:
             clus = self.root
-        print("flattening:", clus, '/' + clus.graph_attr["rank"] + '/' if "rank" in clus.graph_attr else "no rank")
+        # ~ print("flattening:", clus.name, '/' + clus.graph_attr["rank"] + '/' if "rank" in clus.graph_attr else "no rank")
         if len(clus) < 3 or self.typ[clus.name] == 0:
             clus.graph_attr["rank"] = "same"
-        print("flattened:", clus, '/' + clus.graph_attr["rank"] + '/' if "rank" in clus.graph_attr else "no rank")
+            print("flattened:", clus.name)
+        # ~ print("flattened:", clus.name, '/' + clus.graph_attr["rank"] + '/' if "rank" in clus.graph_attr else "no rank")
         for nm in clus:
             n = self.clus_from_repr(nm)
             if n is not None:
@@ -164,7 +166,8 @@ class DecompTree(AGraph):
                     curr_root.remove_node(n)
                     if self.typ[curr_root.name] == 1:
                         "disconnect node n from rest of module"
-                        for nn in curr_root.nodes(): 
+                        for nn in curr_root.nodes():
+                            # ~ print("removing", n, nn)
                             self.delete_edge(n, nn)
                     medium_clan = self.subgraph([node_to_add.nmr, to_sibling[0]], name = nmmedium) # , rank = "same")
                     self.typ[nmmedium] = 1 - self.typ[curr_root.name]
@@ -288,7 +291,8 @@ class DecompTree(AGraph):
 def grab_one(something):
 	'''
 	get some element from the something, that must be iterable and nonempty
-	(probably there is some standard way to do this)
+	(probably there is some standard way to do this);
+	if empty will return None
 	'''
 	for e in something:
 		return e
@@ -296,26 +300,28 @@ def grab_one(something):
 
 if __name__ == "__main__":
     
-    from argparse import ArgumentParser
-    argp = ArgumentParser(
-        description = ("Construct dot-coded decomposition of a graph or 2-structure"),
-        prog = "python[3] redecomp.py or just ./redecomp"
-        )
+    filename = "titanic_"
 
-    argp.add_argument('-V', '--version', action = 'version', 
-                                         version = "redecomp " + VERSION,
-                                         help = "print version and exit")
+    # ~ from argparse import ArgumentParser
+    # ~ argp = ArgumentParser(
+        # ~ description = ("Construct dot-coded decomposition of a graph or 2-structure"),
+        # ~ prog = "python[3] redecomp.py or just ./redecomp"
+        # ~ )
 
-    argp.add_argument('dataset', nargs = '?', default = None, 
-                      help = "name of optional dataset file (default: none, ask user)")
+    # ~ argp.add_argument('-V', '--version', action = 'version', 
+                                         # ~ version = "redecomp " + VERSION,
+                                         # ~ help = "print version and exit")
+
+    # ~ argp.add_argument('dataset', nargs = '?', default = None, 
+                      # ~ help = "name of optional dataset file (default: none, ask user)")
     
-    args = argp.parse_args()
+    # ~ args = argp.parse_args()
 
-    if args.dataset:
-        filename = args.dataset
-    else:
-        print("No dataset file specified.")
-        filename = input("Dataset File Name? ")
+    # ~ if args.dataset:
+        # ~ filename = args.dataset
+    # ~ else:
+        # ~ print("No dataset file specified.")
+        # ~ filename = input("Dataset File Name? ")
     
     if '.' in filename:
         fullfilename = filename
@@ -324,6 +330,7 @@ if __name__ == "__main__":
             print("Found extension", ext, "instead of td for file", filename)
     else:
         fullfilename = filename + ".td"
+
 
 
     g_raw, items = read_graph_in(fullfilename)
@@ -337,8 +344,10 @@ if __name__ == "__main__":
         # ~ else:
             # ~ print("no edge", i, j)
 
-    dtree = DecompTree(compound = True, newrank = True)
-    dtree.setup(delbl(filename))
+    dtree = DecompTree(name = delbl(filename), # directed = True, # makes current version fail
+    compound = True, newrank = "true")
+
+    dtree.setup(delbl(filename)) # add the typ dict that cannot be added at a forbidden __init__()
 
 # Titanic nodes in order of edge weight, computed separately:
     ittit = ['Age_Adult', 'Sex_Male', 'Survived_No', 'Class_Crew', 'Survived_Yes', 'Class_3rd', 'Sex_Female', 'Class_1st', 'Class_2nd', 'Age_Child']
@@ -353,7 +362,7 @@ if __name__ == "__main__":
         dtree.start_dec(gr, Sgton(ittit[0]), Sgton(ittit[1])) 
 
 # Next goal not yet available: getting all the Titanic nodes in this order into the decomposition:
-    szdraw = 9
+    szdraw = 5 # reached 4 under directed and 8 under undirected
     for it in ittit[st:szdraw]:
         "careful, this has changed and now add2tree returns a possibly new root"
         dtree.root = dtree.add2tree(gr, dtree.root, Sgton(it))

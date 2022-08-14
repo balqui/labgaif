@@ -20,3 +20,18 @@ See:
 https://github.com/pygraphviz/pygraphviz/issues/363
 
 
+
+About the graph attributes:
+
+Default for directed is False; right now True won't work out well.
+Then directed = True at the constructing call works and is seen as
+dtree.directed, and actually anything truthy will do, even the 
+string "false" - however, self.directed = True at setup does not work.
+
+Then compound = "true" and newrank = "true" work both at the 
+constructing call and within setup; for compound both True and
+"true" work (not sure for newrank).
+
+
+
+JLB, Aug 14th, 2022
