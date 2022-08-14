@@ -1,0 +1,22 @@
+
+Several AGraph methods in PyGraphviz use self.__class__ to 
+construct e. g. a subgraph. The init of this class will fail 
+if AGraph is subclassed and a custom __init__() is provided
+for the subclass.
+
+The reason is that the class would not be anymore AGraph but the 
+subclass, and then the __init__() called is not the AGraph one. 
+However the source code of PyGraphviz expects AGraph.__init__()
+being called there, and strange errors appear.
+
+As we are indeed subclassing AGraph in this project, that's 
+why we were having trouble in various forms with our custom
+__init__(). We must make do with no custom __init__() so that
+creations fall back on AGraph.__init__() and have a separate
+initialization process.
+
+See:
+
+https://github.com/pygraphviz/pygraphviz/issues/363
+
+
