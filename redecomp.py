@@ -90,22 +90,22 @@ class DecompTree(AGraph):
             if n is not None:
                 self.flatten_ranks(n)
 
-    def start_dec(self, gr, a, b):
-        "early start from two nodes, now deprecated, please start with one and add the other"
-        print("Start with nodes:", a.lbl, b.lbl)
-        a.add_sgton(self)
-        b.add_sgton(self)
-        nmroot = 'cluster_' + a.nmr + '_' + b.nmr
-        self.root = self.add_subgraph([a.nmr, b.nmr], name = nmroot) # , rank = "same")
-        if gr.has_edge(a.nmr, b.nmr):
-            "only modules and no clans for now"
-            self.add_edge(a.nmr, b.nmr)
-            self.typ[nmroot] = 1
-        else:
-            self.typ[nmroot] = 0                
+    # ~ def start_dec(self, gr, a, b):
+        # ~ "early start from two nodes, now deprecated, please start with one and add the other"
+        # ~ print("Start with nodes:", a.lbl, b.lbl)
+        # ~ a.add_sgton(self)
+        # ~ b.add_sgton(self)
+        # ~ nmroot = 'cluster_' + a.nmr + '_' + b.nmr
+        # ~ self.root = self.add_subgraph([a.nmr, b.nmr], name = nmroot) # , rank = "same")
+        # ~ if gr.has_edge(a.nmr, b.nmr):
+            # ~ "only modules and no clans for now"
+            # ~ self.add_edge(a.nmr, b.nmr)
+            # ~ self.typ[nmroot] = 1
+        # ~ else:
+            # ~ self.typ[nmroot] = 0                
 
-    def start_dec_1(self, gr, v):
-        "to test the new case sz == 1 of add2tree"
+    def start_dec(self, gr, v):
+        "uses case sz == 1 of add2tree"
         print("Start with node", v.lbl)
         v.add_sgton(self)
         nmroot = 'cluster_' + v.nmr
@@ -376,27 +376,37 @@ if __name__ == "__main__":
 
     # ~ dtree.setup(delbl(filename)) # add the typ dict that cannot be added at a forbidden __init__()
 
-# Titanic nodes in order of edge weight, computed separately, cases 1a and 1b until Age_Child 1d:
-    ittit = ['Age_Adult', 'Sex_Male', 'Survived_No', 'Class_Crew', 'Survived_Yes', 
-    'Class_3rd', 'Sex_Female', 'Class_1st', 'Class_2nd', 'Age_Child']
+# ~ # Titanic nodes in order of edge weight, computed separately, cases 1a and 1b until Age_Child 1d:
+    # ~ ittit = ['Age_Adult', 'Sex_Male', 'Survived_No', 'Class_Crew', 'Survived_Yes', 
+    # ~ 'Class_3rd', 'Sex_Female', 'Class_1st', 'Class_2nd', 'Age_Child']
+# ~ # Ordering demonstrating cases 1a, 1b, 1c until Sex_Female:
+    # ~ ittit = ['Class_1st', 'Class_2nd', 'Class_3rd', 'Sex_Male', 
+    # ~ 'Sex_Female', 'Age_Child', 'Class_Crew',  'Age_Adult', 'Survived_No','Survived_Yes']
+# Other test ordering:
+    ittit = ['Sex_Male', 'Survived_No', 'Survived_Yes', 
+    'Class_3rd', 'Sex_Female', 'Class_1st', 'Class_2nd', 'Age_Child', 'Class_Crew', 'Age_Adult']
 
-# starting with one or two vertices
-    st = 1
-    # ~ st = 2
+# starting with one or two vertices deprecated, please start with a single one
+    # ~ st = 1
+    # ~ # st = 2
     
-    if st == 1:
-        dtree.start_dec_1(gr, Sgton(ittit[0]))
-    else:
-        dtree.start_dec(gr, Sgton(ittit[0]), Sgton(ittit[1])) 
+    # ~ if st == 1:
+        # ~ dtree.start_dec_1(gr, Sgton(ittit[0]))
+    # ~ else:
+        # ~ dtree.start_dec(gr, Sgton(ittit[0]), Sgton(ittit[1])) 
+
+    dtree.start_dec(gr, Sgton(ittit[0]))
+
 
 # Next goal not yet available: getting all the Titanic nodes in this order into the decomposition:
-    szdraw = 10
-    for it in ittit[st:szdraw]:
-        "careful, this has changed and now add2tree returns a possibly new root"
+    szdraw = 9
+    mark = "o2"
+    for it in ittit[1:szdraw]:
+        "careful, add2tree returns a possibly new root"
         dtree.root = dtree.add2tree(gr, dtree.root, Sgton(it))
     dtree.flatten_ranks()
     dtree.layout("dot")
-    outfile = "dt" + str(szdraw) + "s" + str(st) + ".png"
+    outfile = "dt" + str(szdraw) + "_" + str(mark) + ".png"
     dtree.draw(outfile)
     print("Wrote", outfile)
 
