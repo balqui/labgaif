@@ -24,6 +24,8 @@ https://github.com/pygraphviz/pygraphviz/issues/363
 About the graph attributes:
 
 Default for directed is False; right now True won't work out well.
+Must find out why, probably some edge is referred to inverted.
+
 Then directed = True at the constructing call works and is seen as
 dtree.directed, and actually anything truthy will do, even the 
 string "false" - however, self.directed = True at setup does not work.
@@ -35,3 +37,10 @@ constructing call and within setup; for compound both True and
 
 
 JLB, Aug 14th, 2022
+
+
+(Aug 15th: discussion continues, see URL above. Considering 
+an intermediate class for DecompTree that could be supported 
+either through pygraphviz or through graphviz. Current 
+understanding should now allow me to properly __init__() 
+class DecompTree on PyGraphviz though.)

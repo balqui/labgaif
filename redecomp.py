@@ -32,20 +32,41 @@ class DecompTree(AGraph):
     Currently has a list of nodes not yet added to the decomposition
     but this is likely to change.
     '''
+
+    # ~ def __init__(self):
+		# ~ "Early failing attempt"
+        # ~ super().__init__(name = "test", compound = "true", directed = "true", newrank = "true")
+
     
-    def setup(self, name):
-        '''
-        tried to do most of this upon __init__ but ends up wrong
-        (see file CAREFUL.txt); 
-        name and directed only seem to work upon constructing call, 
-        not here at all; the others give the choice.
-        '''
-        self.typ = dict()
+    # ~ def setup(self, name):
+        # ~ '''
+        # ~ attempt at avoiding a specific __init__
+        # ~ (see file CAREFUL.txt); 
+        # ~ name and directed only seem to work upon constructing call, 
+        # ~ not here at all; the others give the choice.
+        # ~ '''
+        # ~ self.typ = dict() # types of each of the subclans in the partition (I believe, check out)
         # ~ self.graph_attr["compound"] = "true" # this works here and also at constructing call
         # ~ self.graph_attr["newrank"] = "true" # this works here and also at constructing call
         # ~ self.graph_attr["directed"] = True # does not seem to have an effect
         # ~ self.graph_attr.name = name
 
+    # ~ def __init__(self, **kwargs):
+		# ~ "Ross Barnowsky's suggestion in the dialog at the GitHub PyGraphviz issue, rossbar@GitHub"
+        # ~ super().__init__(name="test", compound="true", directed="true", newrank="true")
+
+    def __init__(self, name = None, **kwargs):
+        argsdict = { **kwargs }
+        print("INIT:", name, argsdict)
+        if name is not None: 
+            argsdict['name'] = name
+        argsdict['directed'] = True
+        argsdict['compound'] = True
+        argsdict['newrank'] = True
+        print("INIT mid:", name, argsdict)
+        super().__init__(**argsdict)
+        self.typ = dict() # types of each of the subclans in the partition (I believe, check out)
+        
     def clus_from_repr(self, name):
         "from node name pointing to cluster PT_..., get the cluster name"
         if name.startswith("PT_cluster"):
@@ -347,7 +368,7 @@ if __name__ == "__main__":
     dtree = DecompTree(name = delbl(filename), # directed = True, # makes current version fail
     compound = True, newrank = "true")
 
-    dtree.setup(delbl(filename)) # add the typ dict that cannot be added at a forbidden __init__()
+    # ~ dtree.setup(delbl(filename)) # add the typ dict that cannot be added at a forbidden __init__()
 
 # Titanic nodes in order of edge weight, computed separately:
     ittit = ['Age_Adult', 'Sex_Male', 'Survived_No', 'Class_Crew', 'Survived_Yes', 'Class_3rd', 'Sex_Female', 'Class_1st', 'Class_2nd', 'Age_Child']
@@ -362,7 +383,7 @@ if __name__ == "__main__":
         dtree.start_dec(gr, Sgton(ittit[0]), Sgton(ittit[1])) 
 
 # Next goal not yet available: getting all the Titanic nodes in this order into the decomposition:
-    szdraw = 5 # reached 4 under directed and 8 under undirected
+    szdraw = 4 # reached 4 under directed and 8 under undirected
     for it in ittit[st:szdraw]:
         "careful, this has changed and now add2tree returns a possibly new root"
         dtree.root = dtree.add2tree(gr, dtree.root, Sgton(it))
