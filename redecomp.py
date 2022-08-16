@@ -7,9 +7,13 @@ constructed with separate singletons by make_agraph in
 labgaif/td2dot.py
 
 ToDo: 
-. proper init of OurAGraph class (see file CAREFUL.txt)
+. stay alert about proper init of DecompTree (see file CAREFUL.txt)
 . try iterator on nodes instead of storing the nm list
 . better yet, allow for an external iterator eg on decreasing edge weights
+. right now undirected: 
+.. directed requires handling with care the removal of edges upon 
+   moving a node to a sibling
+.. should it be directed even if arrows are removed from drawing?
 
 '''
 
@@ -60,7 +64,7 @@ class DecompTree(AGraph):
         print("INIT:", name, argsdict)
         if name is not None: 
             argsdict['name'] = name
-        argsdict['directed'] = True
+        argsdict['directed'] = False
         argsdict['compound'] = True
         argsdict['newrank'] = True
         print("INIT mid:", name, argsdict)
@@ -70,7 +74,7 @@ class DecompTree(AGraph):
     def clus_from_repr(self, name):
         "from node name pointing to cluster PT_..., get the cluster name"
         if name.startswith("PT_cluster"):
-            return self.get_subgraph(name[3:])
+            return self.get_subgraph(name[3:]) # causes a call to __init__ (!)
 
     def flatten_ranks(self, clus = None):
         "set rank at same for modules without edges or modules of size 2"
@@ -87,7 +91,8 @@ class DecompTree(AGraph):
                 self.flatten_ranks(n)
 
     def start_dec(self, gr, a, b):
-        print("Started with nodes:", a.lbl, b.lbl)
+        "early start from two nodes, now deprecated, please start with one and add the other"
+        print("Start with nodes:", a.lbl, b.lbl)
         a.add_sgton(self)
         b.add_sgton(self)
         nmroot = 'cluster_' + a.nmr + '_' + b.nmr
@@ -101,10 +106,10 @@ class DecompTree(AGraph):
 
     def start_dec_1(self, gr, v):
         "to test the new case sz == 1 of add2tree"
+        print("Start with node", v.lbl)
         v.add_sgton(self)
         nmroot = 'cluster_' + v.nmr
         self.root = self.add_subgraph([v.nmr], name = nmroot) #, rank = "same") # not good for over 2 vertices
-        print("Started with node", v.lbl)
 
     def add2tree(self, gr, curr_root, node_to_add):
         '''
@@ -123,14 +128,15 @@ class DecompTree(AGraph):
         2b: like 1c
         2c: not all visible have same color: keep the node here and split as necessary
         '''
-        node_to_add.add_sgton(self)
         sz = len(curr_root)
         oftype = ''
         if curr_root.name in self.typ:
             oftype = "of type " + str(self.typ[curr_root.name])
         print("Adding", node_to_add.lbl, "to module", curr_root.name, "of size", sz, oftype)
+        node_to_add.add_sgton(self)
 
         if sz == 1:
+            print("Adding it to a singleton.")
             for n in curr_root:
                 "loop will run only once for the single vertex"
                 # ~ print("Checking for edge", n, node_to_add.nmr)
@@ -146,7 +152,6 @@ class DecompTree(AGraph):
             return curr_root
 # else, sz > 1:
         vd = self.visib_dict(gr, curr_root, node_to_add.nmr)   # PENDING: control for presence of -1
-        print(vd)
         if len(vd[1 - self.typ[curr_root.name]]) == 0 and len(vd[-1]) == 0:
             'case 1a'
             print("case is 1a: node to be added and clan still complete")
@@ -287,13 +292,13 @@ class DecompTree(AGraph):
         which color, if any, are they seen from nd, class -1 if not seen;
         later must expand to treat adequately coarsest-quotient nodes.
         '''
-        # ~ print("Visib check for", cl.name, nd)
+        print("Visib check for", cl.name, nd)
         d = ddict(list)
         for n in cl: 
             if n.name.startswith("PT_cluster"): 
                 "not sure whether get_subgraph might be slow"
-                # ~ print("-- recursive call in visib check for:", n.name)
-                subcl = self.get_subgraph(n.name[3:])
+                print("-- recursive call in visib check for:", n.name)
+                subcl = self.get_subgraph(n.name[3:]) # causes a call to __init__ (!)
                 dd = self.visib_dict(gr, subcl, nd)
                 for c in dd:
                     if len(dd[c]) == len(subcl):
@@ -302,11 +307,12 @@ class DecompTree(AGraph):
                 else:
                     d[-1].append(n)
             else:
-                # ~ print("-- edge between", nd, "and", n, gr.has_edge(n, nd) or gr.has_edge(nd, n))
+                print("-- edge between", nd, "and", n, gr.has_edge(n, nd) or gr.has_edge(nd, n))
                 c = 1 if gr.has_edge(n, nd) or gr.has_edge(nd, n) else 0
                 d[c].append(n)
-                # ~ print("--", n, "appended to color", c)
-        # ~ print(d)
+                print("--", n, "appended to color", c)
+        for e in d: print("  ", e, d[e])
+        print("==")
         return d
 
 def grab_one(something):
@@ -370,8 +376,9 @@ if __name__ == "__main__":
 
     # ~ dtree.setup(delbl(filename)) # add the typ dict that cannot be added at a forbidden __init__()
 
-# Titanic nodes in order of edge weight, computed separately:
-    ittit = ['Age_Adult', 'Sex_Male', 'Survived_No', 'Class_Crew', 'Survived_Yes', 'Class_3rd', 'Sex_Female', 'Class_1st', 'Class_2nd', 'Age_Child']
+# Titanic nodes in order of edge weight, computed separately, cases 1a and 1b until Age_Child 1d:
+    ittit = ['Age_Adult', 'Sex_Male', 'Survived_No', 'Class_Crew', 'Survived_Yes', 
+    'Class_3rd', 'Sex_Female', 'Class_1st', 'Class_2nd', 'Age_Child']
 
 # starting with one or two vertices
     st = 1
@@ -383,7 +390,7 @@ if __name__ == "__main__":
         dtree.start_dec(gr, Sgton(ittit[0]), Sgton(ittit[1])) 
 
 # Next goal not yet available: getting all the Titanic nodes in this order into the decomposition:
-    szdraw = 4 # reached 4 under directed and 8 under undirected
+    szdraw = 10
     for it in ittit[st:szdraw]:
         "careful, this has changed and now add2tree returns a possibly new root"
         dtree.root = dtree.add2tree(gr, dtree.root, Sgton(it))

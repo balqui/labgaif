@@ -13,7 +13,6 @@ names that become empty upon removing nonalpha chars.
 
 '''
 
-from itertools import combinations
 from auxfun import delbl
 from pygraphviz import AGraph
 
@@ -35,6 +34,7 @@ class Sgton:
 
 
 if __name__ == "__main__":
+	from itertools import combinations
 	g = AGraph()
 	nodes = [ "aaw", "q3r", "aw4f", "awafww" ]
 	pnames = []
