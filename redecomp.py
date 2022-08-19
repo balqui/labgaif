@@ -41,7 +41,6 @@ class DecompTree(AGraph):
 		# ~ "Early failing attempt"
         # ~ super().__init__(name = "test", compound = "true", directed = "true", newrank = "true")
 
-    
     # ~ def setup(self, name):
         # ~ '''
         # ~ attempt at avoiding a specific __init__
@@ -60,6 +59,10 @@ class DecompTree(AGraph):
         # ~ super().__init__(name="test", compound="true", directed="true", newrank="true")
 
     def __init__(self, name = None, **kwargs):
+        '''
+        Clarify class of subgraphs: DecompTree or AGraph? 
+        Dict typ's everywhere in the first case.
+        '''
         argsdict = { **kwargs }
         print("INIT:", name, argsdict)
         if name is not None: 
@@ -69,8 +72,8 @@ class DecompTree(AGraph):
         argsdict['newrank'] = True
         print("INIT mid:", name, argsdict)
         super().__init__(**argsdict)
-        self.typ = dict() # types of each of the subclans in the partition (I believe, check out)
-        
+        self.typ = dict() # types of all clans in the decomp (I believe, check out)
+
     def clus_from_repr(self, name):
         "from node name pointing to cluster PT_..., get the cluster name"
         if name.startswith("PT_cluster"):
@@ -152,8 +155,8 @@ class DecompTree(AGraph):
             return curr_root
 # else, sz > 1:
         vd = self.visib_dict(gr, curr_root, node_to_add.nmr)   # PENDING: control for presence of -1
-        if len(vd[1 - self.typ[curr_root.name]]) == 0 and len(vd[-1]) == 0:
-            'case 1a'
+        if len(vd[self.typ[curr_root.name]]) == sz and len(vd[-1]) == 0:
+            'case 1a, noting that sz != 0 means typ is not -1'
             print("case is 1a: node to be added and clan still complete")
             curr_root.add_node(node_to_add.nmr)
             if self.typ[curr_root.name] == 1:
@@ -161,17 +164,25 @@ class DecompTree(AGraph):
                     if n != node_to_add.nmr:
                         curr_root.add_edge(n, node_to_add.nmr)
 
-        elif vd[self.typ[curr_root.name]] and len(vd[-1]) == 0:
-            'case 1b'
+        elif vd[t := self.typ[curr_root.name]] and t != -1:
+            'case 1b - do we need to test for len(vd[-1]) == 0?'
             print("case is 1b: node to be added to sibling")
             to_sibling = list()
             nmsibling = 'cluster'
             for n in vd[1 - self.typ[curr_root.name]]:
                 '''
                 create sibling clan with the rest;
-                this must become more sophisticate if we move beyond edges/nonedges
+                here the other color, below the nonvisible;
+                all this must become more sophisticate if we move beyond edges/nonedges
                 '''
-                # ~ print("Sending to sibling:", n)
+                print("Sending to sibling:", n)
+                to_sibling.append(n)
+                nmsibling += "_" + n
+            for n in vd[-1]:
+                '''
+                nonvisibles too!
+                '''
+                print("Sending to sibling:", n)
                 to_sibling.append(n)
                 nmsibling += "_" + n
 
@@ -185,7 +196,7 @@ class DecompTree(AGraph):
                     '''
                     only sibling is a singleton:
                     sibling clan unnecessary, just size-2 medium clan with new node and this one
-                    complete but opposite to curr_root type
+                    complete but opposite to curr_root type (what happens with several colors?)
                     '''
                     print("Single singleton sibling", to_sibling[0])
                     n = to_sibling[0]
@@ -216,7 +227,10 @@ class DecompTree(AGraph):
                         # ~ for nn in curr_root.nodes(): 
                             # ~ self.delete_edge(n,nn)
                 if self.typ[curr_root.name] == 1:
-                    "now it is time for disconnecting once we know exactly who goes into to_sibling"
+                    '''now it is time for disconnecting once we know 
+                    exactly who goes into to_sibling - but not sure
+                    how this works for several colors!
+                    '''
                     for n in to_sibling:
                         for nn in curr_root.nodes(): 
                             self.remove_edge(n,nn)
@@ -227,42 +241,16 @@ class DecompTree(AGraph):
                 self.add_node(nmsiblingpt, shape = "point") 
                 # ~ print("self.typ", curr_root.name, self.typ[curr_root.name])
                 if self.typ[curr_root.name] == 1:
+                    '''many places around would fail with several colors'''
                     for nn in curr_root.nodes(): 
-                        self.add_edge(nmsiblingpt,nn)
+                        self.add_edge(nmsiblingpt, nn)
                 curr_root.add_node(nmsiblingpt)
-                self.add_edge(nmsiblingpt, grab_one(sibling_clan))
+                self.add_edge(nmsiblingpt, grab_one(sibling_clan), lhead = sibling_clan.name)
 
-                # ~ sibling_clan = self.subgraph(to_sibling, name = nmsibling)
-                # ~ self.typ[nmsibling] = self.typ[curr_root.name]
-                # ~ # rest should be handled as a recursive call
-                # ~ self.add_node("PT_"+nmsibling, shape = "point") 
-                # ~ # medium_clan.add_node("PT_"+nmsibling)
-                # ~ for nn in sibling_clan.iternodes():
-                    # ~ # obtain a node nn in the clan, any node
-                    # ~ break          
-                # ~ self.add_edge("PT_"+nmsibling, nn)
-            
-            # ~ nmmedium = nmsibling+ "_"+node_to_add.nmr    
-            # ~ medium_clan = self.subgraph([node_to_add.nmr,"PT_"+nmsibling], name = nmmedium)  
-            # ~ medium_clan.graph_attr["rank"] = "same"
-
-            # ~ if self.typ[curr_root.name] == 0:
-                # ~ self.add_edge("PT_"+nmsibling , node_to_add.nmr)
-                # ~ self.typ[nmmedium] = 1
-            # ~ else:
-                # ~ self.typ[nmmedium] = 0
-            # ~ curr_root.add_node("PT_"+nmmedium, shape = "point")
-            # ~ if self.typ[curr_root.name] == 1:
-                # ~ for n in curr_root.nodes():
-                    # ~ if n != "PT_"+nmmedium:
-                        # ~ self.add_edge("PT_"+nmmedium,n)
-            # ~ #self.add_edge("PT_"+nmmedium, "PT_"+nmsibling)
-            # ~ for nn in medium_clan.iternodes():
-                # ~ break            
-            # ~ self.add_edge("PT_"+nmmedium, nn) #arrowhead = "none"
-                
-        elif not vd[self.typ[curr_root.name]] and len(vd[-1]) == 0:
-            'case 1c'
+        elif not vd[self.typ[curr_root.name]] and not vd[-1]:
+            '''case 1c and maybe we can use the same code for 2b,
+            trying that out but careful with several colors
+            '''
             print("case is 1c: node and complete clan go into higher size-2 clan")
             pt_curr_root_nm = "PT_" + curr_root.name
             self.add_node(pt_curr_root_nm, shape = "point")
@@ -270,11 +258,14 @@ class DecompTree(AGraph):
             # ~ t = grab_one(curr_root)
             # ~ print("compound?", self.graph_attr.compound, t, pt_curr_root_nm, curr_root.name, t in curr_root)
             # ~ for n in curr_root: print(n)
-            self.add_edge(pt_curr_root_nm, grab_one(curr_root), lhead = curr_root.name) #conectar PT de cuirrent_root a current_root
             nmnew = curr_root.name + '_' + node_to_add.nmr
+            print("=====", curr_root.name, nmnew, pt_curr_root_nm)
             new_clan = self.subgraph([pt_curr_root_nm, node_to_add.nmr], name = nmnew)
-            
+            print("=====")
+            self.add_edge(pt_curr_root_nm, grab_one(curr_root), lhead = curr_root.name) #conectar PT de cuirrent_root a current_root
+
             if self.typ[curr_root.name] == 0:
+                'to work out with several colors'
                 self.add_edge(pt_curr_root_nm, node_to_add.nmr)
                 self.typ[nmnew] = 1  
             else:
@@ -291,6 +282,7 @@ class DecompTree(AGraph):
         all nodes inside clan/module cl are classified according to 
         which color, if any, are they seen from nd, class -1 if not seen;
         later must expand to treat adequately coarsest-quotient nodes.
+        Also, right now it is called over and over with the same cl and nd.
         '''
         print("Visib check for", cl.name, nd)
         d = ddict(list)
@@ -380,11 +372,13 @@ if __name__ == "__main__":
     # ~ ittit = ['Age_Adult', 'Sex_Male', 'Survived_No', 'Class_Crew', 'Survived_Yes', 
     # ~ 'Class_3rd', 'Sex_Female', 'Class_1st', 'Class_2nd', 'Age_Child']
 # ~ # Ordering demonstrating cases 1a, 1b, 1c until Sex_Female:
-    # ~ ittit = ['Class_1st', 'Class_2nd', 'Class_3rd', 'Sex_Male', 
-    # ~ 'Sex_Female', 'Age_Child', 'Class_Crew',  'Age_Adult', 'Survived_No','Survived_Yes']
+    ittit = ['Class_1st', 'Class_2nd', 'Class_3rd', 'Sex_Male', 
+    'Sex_Female', 'Age_Child', 'Class_Crew',  'Age_Adult', 'Survived_No','Survived_Yes']
 # Other test ordering:
-    ittit = ['Sex_Male', 'Survived_No', 'Survived_Yes', 
-    'Class_3rd', 'Sex_Female', 'Class_1st', 'Class_2nd', 'Age_Child', 'Class_Crew', 'Age_Adult']
+    # ~ ittit = ['Sex_Male', 'Survived_No', 'Survived_Yes', 
+    # ~ 'Class_3rd', 'Sex_Female', 'Class_1st', 'Class_2nd', 'Age_Child', 'Class_Crew', 'Age_Adult']
+    # ~ ittit = ['Sex_Male', 'Class_3rd', 'Age_Child', 'Class_Crew', 'Age_Adult']
+    # ~ ittit = ['Sex_Male', 'Age_Adult', 'Class_3rd', 'Age_Child', 'Class_Crew']
 
 # starting with one or two vertices deprecated, please start with a single one
     # ~ st = 1
@@ -399,8 +393,8 @@ if __name__ == "__main__":
 
 
 # Next goal not yet available: getting all the Titanic nodes in this order into the decomposition:
-    szdraw = 9
-    mark = "o2"
+    szdraw = 7
+    mark = "p2"
     for it in ittit[1:szdraw]:
         "careful, add2tree returns a possibly new root"
         dtree.root = dtree.add2tree(gr, dtree.root, Sgton(it))
