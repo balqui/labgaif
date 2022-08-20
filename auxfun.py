@@ -17,3 +17,11 @@ def q(s):
     'quote string s'
     return '"' + s + '"'
 
+def grab_one(something):
+	'''
+	get some element from the something, that must be iterable and nonempty
+	(probably there is some standard way to do this);
+	if empty will return None
+	'''
+	for e in something:
+		return e
