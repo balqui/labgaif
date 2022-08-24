@@ -8,18 +8,20 @@ labgaif/td2dot.py
 
 ToDo: 
 . complete all cases, now just minimal to handle titanic plain
-.. only two colors, edge and nonedte
+.. currently only two colors, edge and nonedte
 .. 1a, 1b and 1c complete, 2b probably too
 .. 1d advanced but 
 ... still lacks split of primitive clans and
 ... does not keep track of colors of split complete clans beyond one level 
-. stay alert about proper init of DecompTree (see file CAREFUL.txt)
-. try iterator on nodes instead of storing the nm list
-. better yet, allow for an external iterator eg on decreasing edge weights
+. consider seriously to have the typ of each clan as its own field
+.. instead of a dict at the tree level
 . right now undirected: 
 .. directed requires handling with care the removal of edges upon 
    moving a node to a sibling
 .. should it be directed even if arrows are removed from drawing?
+. stay alert about proper init of DecompTree (see file CAREFUL.txt)
+. try iterator on nodes instead of storing the nm list
+. better yet, allow for an external iterator eg on decreasing edge weights
 
 '''
 
