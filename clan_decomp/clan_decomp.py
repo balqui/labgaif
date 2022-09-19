@@ -20,7 +20,9 @@ ToDo:
 . complete all cases, now just minimal to handle titanic plain,
 . see ToDo in latest version of ../redecomp.py afterwards.
 
-As of today, 2022/08/23, no refactoring has been done yet.
+As of 2022/09/18, no refactoring had been done yet. 
+Depending on how clan.py evolves, this file might just
+become deprecated.
 '''
 
 from pygraphviz import AGraph
@@ -29,7 +31,7 @@ from sgton import Sgton
 from auxfun import delbl, grab_one
 from collections import defaultdict as ddict
 from itertools import combinations
-VERSION = "0.1 gamma"
+VERSION = "0.2 alpha"
 
 class DecompTree(AGraph):
     '''
