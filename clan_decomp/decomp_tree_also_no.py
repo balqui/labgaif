@@ -22,29 +22,65 @@ Unclear whether this is the AGraph where we will be running the
 incremental decomposition algorithm; maybe a subclass.
 '''
 
-# ~ from pygraphviz import AGraph
+from pygraphviz import AGraph
 # ~ from td2dot import read_graph_in, make_agraph
 # ~ from sgton import Sgton
-# ~ from auxfun import delbl, grab_one
+from auxfun import delbl, grab_one
 # ~ from collections import defaultdict as ddict
 # ~ from itertools import combinations
-
-from tree4dec import Tree4Dec
-
 VERSION = "0.2 alpha"
 
-class DecompTree(Tree4Dec):
+class DecompTree(AGraph):
     '''
+    Has a specific clan which acts as root
+    Currently has a list of nodes not yet 
+    added to the decomposition
+    but this is likely to change.
     '''
 
-    # ~ def __init__(self, name = None, **kwargs):
-        # ~ '''
-        # ~ '''
+    # ~ def __init__(self):
+		# ~ "Early failing attempt"
+        # ~ super().__init__(name = "test", compound = "true", directed = "true", newrank = "true")
 
-    def __init__(self, **kwargs):
+    # ~ def setup(self, name):
+        # ~ '''
+        # ~ attempt at avoiding a specific __init__
+        # ~ (see file CAREFUL.txt); 
+        # ~ name and directed only seem to work upon constructing call, 
+        # ~ not here at all; the others give the choice.
+        # ~ '''
+        # ~ self.typ = dict() # types of each of the subclans in the partition (I believe, check out)
+        # ~ self.graph_attr["compound"] = "true" # this works here and also at constructing call
+        # ~ self.graph_attr["newrank"] = "true" # this works here and also at constructing call
+        # ~ self.graph_attr["directed"] = True # does not seem to have an effect
+        # ~ self.graph_attr.name = name
+
+    # ~ def __init__(self, **kwargs):
+		# ~ "Ross Barnowsky's suggestion in the dialog at the GitHub PyGraphviz issue, rossbar@GitHub"
+        # ~ super().__init__(name="test", compound="true", directed="true", newrank="true")
+
+    def __init__(self, name = None, **kwargs):
         '''
+        Clarify class of subgraphs: DecompTree or AGraph? 
+        Dict typ's everywhere in the first case; 
+        then typ should just be the typ of the root instead of a dict.
         '''
-        super().__init__(**kwargs)
+        argsdict = { **kwargs }
+        # ~ print("INIT new args:", name, argsdict)
+        argsdict['directed'] = False # override whatever comes in # STILL DOUBTFUL
+        argsdict['compound'] = True  # ditto
+        # ~ argsdict['newrank'] = True # NOT SURE OF THE EFFECT
+        super().__init__(**argsdict)
+        if name is not None: 
+            argsdict['name'] = name
+        # ~ else: ???
+        # ~ self.typ = dict() # types of all clans in the decomp (I believe, check out)
+        # ~ self.typ = ???
+
+    # ~ def clus_from_repr(self, name):
+        # ~ "from node name pointing to cluster PT_..., get the cluster name"
+        # ~ if name.startswith("PT_cluster"):
+            # ~ return self.get_subgraph(name[3:]) # causes a call to __init__ (!)
 
     def flatten_ranks(self, clus = None):
         "set rank at same for modules without edges or modules of size 2"
@@ -63,12 +99,12 @@ class DecompTree(Tree4Dec):
             if n is not None:
                 self.flatten_ranks(n)
 
-    # ~ def start_dec(self, gr, v):
-        # ~ "uses case sz == 1 of add2tree"
-        # ~ print("Start with node", v.lbl)
-        # ~ v.add_sgton(self)
-        # ~ nmroot = 'cluster_' + v.nmr
-        # ~ self.root = self.add_subgraph([v.nmr], name = nmroot) #, rank = "same") # not good for over 2 vertices
+    def start_dec(self, gr, v):
+        "uses case sz == 1 of add2tree"
+        print("Start with node", v.lbl)
+        v.add_sgton(self)
+        nmroot = 'cluster_' + v.nmr
+        self.root = self.add_subgraph([v.nmr], name = nmroot) #, rank = "same") # not good for over 2 vertices
 
     # ~ def add2tree(self, gr, curr_root, node_to_add):
         # ~ '''
@@ -95,14 +131,14 @@ class DecompTree(Tree4Dec):
             # ~ print("Adding it to a singleton.")
             # ~ for n in curr_root:
                 # ~ "loop will run only once for the single vertex"
-                # # ~ print("Checking for edge", n, node_to_add.nmr)
+                print("Checking for edge", n, node_to_add.nmr)
                 # ~ if gr.has_edge(n, node_to_add.nmr):
                     # ~ "only modules and no clans for now"
-                    # ~ # print("-- edge found")
+                    print("-- edge found")
                     # ~ self.add_edge(n, node_to_add.nmr)
                     # ~ self.typ[curr_root.name] = 1
                 # ~ else:
-                    # ~ # print("-- edge not found")
+                    print("-- edge not found")
                     # ~ self.typ[curr_root.name] = 0
             # ~ curr_root.add_node(node_to_add.nmr)
             # ~ return curr_root
@@ -158,7 +194,7 @@ class DecompTree(Tree4Dec):
                     # ~ if self.typ[curr_root.name] == 1:
                         # ~ "disconnect node n from rest of module"
                         # ~ for nn in curr_root.nodes():
-                            # ~ # print("removing", n, nn)
+                            print("removing", n, nn)
                             # ~ self.delete_edge(n, nn)
                     # ~ medium_clan = self.subgraph([node_to_add.nmr, to_sibling[0]], name = nmmedium) # , rank = "same")
                     # ~ self.typ[nmmedium] = 1 - self.typ[curr_root.name]
@@ -176,10 +212,10 @@ class DecompTree(Tree4Dec):
                 # ~ for n in to_sibling:
                     # ~ curr_root.remove_node(n)
                     # wrong loop, it may disconnect things that go together later into to_sibling
-                    # if self.typ[curr_root.name] == 1:
-                        # "disconnect node n from rest of module"
-                        # for nn in curr_root.nodes(): 
-                            # self.delete_edge(n,nn)
+                    if self.typ[curr_root.name] == 1:
+                        "disconnect node n from rest of module"
+                        for nn in curr_root.nodes(): 
+                            self.delete_edge(n,nn)
                 # ~ if self.typ[curr_root.name] == 1:
                     # ~ '''now it is time for disconnecting once we know 
                     # ~ exactly who goes into to_sibling - but not sure
@@ -193,7 +229,7 @@ class DecompTree(Tree4Dec):
                 # ~ sibling_clan = self.add2tree(gr, sibling_clan, node_to_add)
                 # ~ nmsiblingpt = "PT_" + sibling_clan.name
                 # ~ self.add_node(nmsiblingpt, shape = "point") 
-                # ~ # print("self.typ", curr_root.name, self.typ[curr_root.name])
+                print("self.typ", curr_root.name, self.typ[curr_root.name])
                 # ~ if self.typ[curr_root.name] == 1:
                     # ~ '''many places around would fail with several colors'''
                     # ~ for nn in curr_root.nodes(): 
@@ -361,7 +397,7 @@ class DecompTree(Tree4Dec):
 
 if __name__ == "__main__":
     
-    fullfilename = "titanic_.td" 
+    filename = "titanic_.td" 
     # TO BE REPLACED BY ARGUMENT PARSING AS PER FILE clan_decomp.py
 
 

@@ -14,6 +14,9 @@ drawing the arrows.
 from pygraphviz import AGraph
 
 class Tree4Dec(AGraph):
+    '''
+    Has a specific clan that acts as root
+    '''
 
     def __init__(self, **kwargs):
         kwargs["directed"] = True # override potential alternative

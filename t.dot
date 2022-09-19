@@ -1,0 +1,8 @@
+digraph { 
+ edge [ color = "green"; dir = none ]
+ graph [ compound = "true" ]
+ b -> c [ lhead = cd ];
+ subgraph ab { cluster = true; a b }
+ subgraph cd { cluster = true; c -> d; }
+ a -> b;
+ }
