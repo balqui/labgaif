@@ -111,7 +111,7 @@ def make_agraph_edge_sorted(gr, items, outgr):
 				outgr.add_edge(name[u][0], name[v][0], label = gr[u][v])
 				weight[name[u][1]] = max(weight[name[u][1]], gr[u][v])
 				weight[name[v][1]] = max(weight[name[v][1]], gr[u][v])
-	print(weight)
+	# ~ print(weight)
 	return sorted(name.values(), key = lambda x: weight[x], reverse = True)
 
 
@@ -157,15 +157,15 @@ if __name__ == "__main__":
     gr, items = read_graph_in(fullfilename)
     # ~ print(items)
     # ~ dump_graph(gr)
-    dot_output(gr, delbl(filename))
+    # ~ dot_output(gr, delbl(filename))
     
     from pygraphviz import AGraph
     g = AGraph(name = delbl(filename))
     # ~ nm = make_agraph(gr, items, g)
     nm = make_agraph_edge_sorted(gr, items, g)
-    print("Internal AGraph names:", nm)
-    # ~ g.layout("dot")
-    # ~ g.draw(filename + "_sgtons.png")
+    # ~ print("Internal AGraph names:", nm)
+    g.layout("dot")
+    g.draw(filename + "_sgtons.png")
     # ~ g.write(filename + "_sgtons.dot")
     
 
