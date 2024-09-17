@@ -420,6 +420,7 @@ class DecompTree(AGraph):
 if __name__ == "__main__":
     
     filename = "e7" 
+    # ~ filename = "e7alt" 
     # ~ filename = "titanic_" # TO BE REPLACED BY ARGUMENT PARSING AS FOLLOWS
 
     # ~ from argparse import ArgumentParser
