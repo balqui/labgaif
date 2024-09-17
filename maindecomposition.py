@@ -461,7 +461,8 @@ if __name__ == "__main__":
 	from td2dot import read_graph_in
 
 	# choose an available .td file
-	datasetfile = 'titanic_'
+	# ~ datasetfile = 'titanic_'
+	datasetfile = 'e7r'
 	
 	# JLB: read labeled Gaifman graph
 	graph, items = read_graph_in(datasetfile + '.td')
@@ -473,13 +474,13 @@ if __name__ == "__main__":
 	
 	# JLB: option 1 for original graph
 	#      Recoded graph MUST be named MyGraph due to how Ely's code works
-	# ~ MyGraph = labGgraph(graph, items)
-	# ~ decompose(MyGraph, '1', datasetfile + '_orig_decomp')
+	MyGraph = labGgraph(graph, items)
+	decompose(MyGraph, '1', datasetfile + '_orig_decomp')
 	
 	# JLB: option 2 for standard Gaifman graph: thresholded graph with default 0 threshold
 	#      Recoded graph MUST be named MyGraph due to how Ely's code works
-	MyGraph = stdGgraph(graph, items)
-	decompose(MyGraph, '2', datasetfile + '_std_decomp')
+	# ~ MyGraph = stdGgraph(graph, items)
+	# ~ decompose(MyGraph, '2', datasetfile + '_std_decomp')
 	
 	# JLB: option 3 for thresholded graph with explicit threshold
 	#      Recoded graph MUST be named MyGraph due to how Ely's code works
