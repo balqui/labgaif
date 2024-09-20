@@ -462,7 +462,9 @@ if __name__ == "__main__":
 
 	# choose an available .td file
 	# ~ datasetfile = 'titanic_'
-	datasetfile = 'e7r'
+	# ~ datasetfile = 'e7alt'
+	# ~ datasetfile = 'e6b'
+	datasetfile = 'e8a'
 	
 	# JLB: read labeled Gaifman graph
 	graph, items = read_graph_in(datasetfile + '.td')
