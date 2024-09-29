@@ -462,13 +462,21 @@ if __name__ == "__main__":
 
 	# choose an available .td file
 	# ~ datasetfile = 'titanic_'
-	# ~ datasetfile = 'e7alt'
+	# ~ datasetfile = 'e4a'
+	# ~ datasetfile = 'e4b'
+	# ~ datasetfile = 'e6'
+	# ~ datasetfile = 'e6a'
 	# ~ datasetfile = 'e6b'
-	datasetfile = 'e8a'
-	
+	# ~ datasetfile = 'e7'
+	# ~ datasetfile = 'e7r'
+	# ~ datasetfile = 'e7alt'
+	# ~ datasetfile = 'e8a'
+	datasetfile = 'ex_dec_0'
+
 	# JLB: read labeled Gaifman graph
 	graph, items = read_graph_in(datasetfile + '.td')
-	
+
+	# ~ items = list("abcde")
 	# JLB: make items available as global variable TotalAttributesValues, 
 	#      necessary for Ely's code to work - also, there, 
 	#      replace '-' and '=' in names as disallowed by dot

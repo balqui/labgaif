@@ -419,8 +419,15 @@ class DecompTree(AGraph):
 
 if __name__ == "__main__":
     
-    filename = "e7" 
+    # ~ filename = "e4a" 
+    # ~ filename = "e4b" 
+    # ~ filename = "e6" 
+    # ~ filename = "e6a" 
+    # ~ filename = "e7" 
+    # ~ filename = "e7r" 
     # ~ filename = "e7alt" 
+    filename = "e8a" 
+    # ~ filename = 'ex_dec_0'
     # ~ filename = "titanic_" # TO BE REPLACED BY ARGUMENT PARSING AS FOLLOWS
 
     # ~ from argparse import ArgumentParser
